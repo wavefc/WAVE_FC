@@ -85,9 +85,19 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 
 .att-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);font-size:15px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center}
 .att-btn.present{background:var(--green-bg);border-color:var(--green);color:var(--green)}
-.att-btn.absent{background:var(--red-bg);border-color:var(--red);color:var(--red);font-size:12px}
+.att-btn.absent{background:rgba(234,88,12,.12);border-color:#c2410c;color:#c2410c;font-size:12px}
+.att-btn.unauth{background:rgba(185,28,28,.15);border-color:#991b1b;color:#991b1b;font-size:10px;font-weight:800}
 .att-btn.none{background:var(--bg);border-color:var(--border);color:var(--text3)}
 .att-btn:hover{transform:scale(1.08)}
+[data-theme="dark"] .att-btn.absent{background:rgba(251,146,60,.15);border-color:#fb923c;color:#fb923c}
+[data-theme="dark"] .att-btn.unauth{background:rgba(248,113,113,.18);border-color:#ef4444;color:#ef4444}
+.reason-text{font-size:11px;color:#c2410c;margin-top:3px;max-width:80px;font-weight:600;line-height:1.3}
+[data-theme="dark"] .reason-text{color:#fb923c}
+.unauth-text{font-size:10px;color:#991b1b;margin-top:3px;font-weight:800}
+[data-theme="dark"] .unauth-text{color:#ef4444}
+.warning-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;color:#b45309;background:rgba(245,158,11,.15);padding:1px 8px;border-radius:10px;margin-left:6px;white-space:nowrap}
+[data-theme="dark"] .warning-badge{color:#fbbf24;background:rgba(251,191,36,.15)}
+.hide-reasons .reason-text,.hide-reasons .unauth-text{display:none!important}
 
 .rate-badge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}
 .rate-high{background:var(--green-bg);color:var(--green)}.rate-mid{background:var(--yellow-bg);color:var(--yellow)}.rate-low{background:var(--red-bg);color:var(--red)}
@@ -228,6 +238,7 @@ let editingMemberId=null,editingSessionId=null,reasonTarget=null;
 let selectedDates=[],venuePerDate={},calYear,calMonth;
 let restTargetId=null,retireTargetId=null;
 let saving=false;
+let hideReasons=false;
 
 // ═══ FIREBASE SAVE/LOAD ═══
 function saveData(){
@@ -275,9 +286,9 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('cl
 
 // ═══ HELPERS ═══
 function getMS(){return(S.sessions||[]).filter(s=>{const d=new Date(s.date);return d.getFullYear()===viewYear&&d.getMonth()===viewMonth}).sort((a,b)=>a.date.localeCompare(b.date))}
-function sessStats(sid){let p=0;(S.members||[]).forEach(m=>{if(S.attendance&&S.attendance[m.id+'_'+sid])p++});return{present:p,total:(S.members||[]).length}}
-function memMonthRate(mid,ms){if(!ms.length)return{a:0,t:0,r:0};let a=0;ms.forEach(s=>{if(S.attendance&&S.attendance[mid+'_'+s.id])a++});return{a,t:ms.length,r:Math.round(a/ms.length*100)}}
-function teamRate(ms){const mem=S.members||[];if(!ms.length||!mem.length)return 0;let t=0;mem.forEach(m=>ms.forEach(s=>{if(S.attendance&&S.attendance[m.id+'_'+s.id])t++}));return Math.round(t/(ms.length*mem.length)*100)}
+function sessStats(sid){let p=0;(S.members||[]).forEach(m=>{if(S.attendance&&S.attendance[m.id+'_'+sid]===true)p++});return{present:p,total:(S.members||[]).length}}
+function memMonthRate(mid,ms){if(!ms.length)return{a:0,t:0,r:0};let a=0;ms.forEach(s=>{if(S.attendance&&S.attendance[mid+'_'+s.id]===true)a++});return{a,t:ms.length,r:Math.round(a/ms.length*100)}}
+function teamRate(ms){const mem=S.members||[];if(!ms.length||!mem.length)return 0;let t=0;mem.forEach(m=>ms.forEach(s=>{if(S.attendance&&S.attendance[m.id+'_'+s.id]===true)t++}));return Math.round(t/(ms.length*mem.length)*100)}
 function rb(rate,txt){const c=rate>=70?'rate-high':rate>=40?'rate-mid':'rate-low';return`<span class="rate-badge ${c}">${txt}</span>`}
 
 // ═══ RENDER ═══
@@ -291,34 +302,53 @@ function render(){
 
 function renderAtt(){
   const ms=getMS(),sorted=[...(S.members||[])].sort(korSort),tr=teamRate(ms);
+  // Yellow card check: 2 unauth in month OR 2 consecutive weeks unauth
+  function hasWarning(mid){
+    if(!ms.length)return false;
+    let unauthCount=0;let maxConsec=0,curConsec=0;
+    ms.forEach(s=>{
+      const v=S.attendance&&S.attendance[mid+'_'+s.id];
+      if(v==='unauth'){unauthCount++;curConsec++; if(curConsec>maxConsec)maxConsec=curConsec}
+      else{curConsec=0}
+    });
+    return unauthCount>=2||maxConsec>=2;
+  }
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
     <div style="display:flex;align-items:center;gap:8px">
       <button class="btn btn-ghost" onclick="prevMonth()">◀</button>
       <span style="font-size:18px;font-weight:800;min-width:130px;text-align:center;color:var(--text)">${viewYear}년 ${viewMonth+1}월</span>
       <button class="btn btn-ghost" onclick="nextMonth()">▶</button>
     </div>
-    <button class="btn btn-primary btn-sm" onclick="openAddSessions()">+ 일정 추가</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm ${hideReasons?'btn-primary':'btn-secondary'}" onclick="toggleHideReasons()">${hideReasons?'👁 사유 보이기':'🙈 사유 숨기기'}</button>
+      <button class="btn btn-primary btn-sm" onclick="openAddSessions()">+ 일정 추가</button>
+    </div>
   </div>
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-label">이번 달 일정</div><div class="stat-value blue">${ms.length}회</div></div>
-    <div class="stat-card"><div class="stat-label">현재 회원</div><div class="stat-value blue">${(S.members||[]).length}명</div></div>
+    <div class="stat-card"><div class="stat-label">활동 회원</div><div class="stat-value blue">${(S.members||[]).length}명</div></div>
     <div class="stat-card"><div class="stat-label">팀 출석률</div><div class="stat-value ${tr>=70?'green':tr>=40?'yellow':''}">${tr}%</div></div>
   </div>`;
   if(!ms.length){h+=`<div class="empty-state"><div class="icon">📅</div><p>이번 달 일정이 없습니다</p><button class="btn btn-primary" onclick="openAddSessions()">일정 추가하기</button></div>`}
   else if(!sorted.length){h+=`<div class="empty-state"><div class="icon">👥</div><p>등록된 회원이 없습니다</p><button class="btn btn-primary" onclick="switchTab('all');setTimeout(openAddMember,100)">회원 추가하기</button></div>`}
   else{
-    h+=`<div class="table-wrap"><table><thead><tr><th>번호</th><th style="text-align:left">이름</th><th>가입일</th><th>등번호</th>`;
+    h+=`<div class="table-wrap${hideReasons?' hide-reasons':''}"><table><thead><tr><th>번호</th><th style="text-align:left">이름</th><th>가입일</th><th>등번호</th>`;
     ms.forEach(s=>{const st=sessStats(s.id);h+=`<th class="session-header" onclick="openEditSession('${s.id}')"><div class="session-date">${fmtDate(s.date)}</div><div class="session-venue">${esc(s.venue)}</div><div class="session-count">${st.present}/${st.total}</div></th>`});
     h+=`<th>출석률</th></tr></thead><tbody>`;
     sorted.forEach((m,i)=>{
       const r=memMonthRate(m.id,ms),crown=m.role==='exec'?'👑 ':'';
-      h+=`<tr><td>${i+1}</td><td class="name-cell" onclick="openDetail('${m.id}')">${crown}${esc(m.name)}</td><td style="font-size:12px;color:var(--text3)">${esc(m.joinDate)}</td><td>${esc(m.number)||'-'}</td>`;
+      const warn=hasWarning(m.id);
+      h+=`<tr><td>${i+1}</td><td class="name-cell" onclick="openDetail('${m.id}')">${crown}${esc(m.name)}${warn?'<span class="warning-badge">🟨 경고</span>':''}</td><td style="font-size:12px;color:var(--text3)">${esc(m.joinDate)}</td><td>${esc(m.number)||'-'}</td>`;
       ms.forEach(s=>{
-        const key=m.id+'_'+s.id,att=S.attendance||{},rsn=S.reasons||{},present=att[key],reason=rsn[key];
+        const key=m.id+'_'+s.id,att=S.attendance||{},rsn=S.reasons||{},val=att[key],reason=rsn[key];
         let cls='none',icon='·';
-        if(present===true){cls='present';icon='✓'}else if(present===false){cls='absent';icon='✗'}
-        const hasR=present===false&&reason;
-        h+=`<td><button class="att-btn ${cls}" onclick="cycleAtt('${m.id}','${s.id}',event)">${icon}</button>${hasR?'<div style="font-size:9px;color:var(--text3);margin-top:2px;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(reason)+'">'+esc(reason)+'</div>':''}</td>`;
+        if(val===true){cls='present';icon='✓'}
+        else if(val==='absent'||val===false){cls='absent';icon='✗'}
+        else if(val==='unauth'){cls='unauth';icon='무단'}
+        h+=`<td><button class="att-btn ${cls}" onclick="cycleAtt('${m.id}','${s.id}',event)">${icon}</button>`;
+        if((val==='absent'||val===false)&&reason){h+=`<div class="reason-text" title="${esc(reason)}">${esc(reason)}</div>`}
+        if(val==='unauth'){h+=`<div class="unauth-text">무단결석</div>`}
+        h+=`</td>`;
       });
       h+=`<td>${rb(r.r,r.r+'% ('+r.a+'/'+r.t+')')}</td></tr>`;
     });
@@ -326,6 +356,7 @@ function renderAtt(){
   }
   document.getElementById('tab-attendance').innerHTML=h;
 }
+function toggleHideReasons(){hideReasons=!hideReasons;render()}
 
 function renderActive(){
   const sorted=[...(S.members||[])].sort(korSort);
@@ -483,11 +514,22 @@ function nextMonth(){if(viewMonth===11){viewMonth=0;viewYear++}else viewMonth++;
 
 // ═══ ATTENDANCE ═══
 function cycleAtt(mid,sid,evt){
-  if(!S.attendance)S.attendance={};
+  if(!S.attendance)S.attendance={};if(!S.reasons)S.reasons={};
   const key=mid+'_'+sid,cur=S.attendance[key];
-  if(cur===undefined||cur===null){S.attendance[key]=true;if(S.reasons)delete S.reasons[key]}
-  else if(cur===true){S.attendance[key]=false;openReasonPopup(mid,sid,evt)}
-  else{delete S.attendance[key];if(S.reasons)delete S.reasons[key]}
+  if(cur===undefined||cur===null){
+    // none → present
+    S.attendance[key]=true;delete S.reasons[key];
+  } else if(cur===true){
+    // present → absent (open reason popup)
+    S.attendance[key]='absent';
+    openReasonPopup(mid,sid,evt);
+  } else if(cur==='absent'||cur===false){
+    // absent → unauthorized
+    S.attendance[key]='unauth';delete S.reasons[key];
+  } else if(cur==='unauth'){
+    // unauthorized → none
+    delete S.attendance[key];delete S.reasons[key];
+  }
   saveData();render();
 }
 function openReasonPopup(mid,sid,evt){
