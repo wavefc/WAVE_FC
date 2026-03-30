@@ -5,31 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WAVE FC 출석 및 회원 관리</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
-:root {
-  --bg:#f1f3f6;--bg2:#ffffff;--bg3:#e9ecf0;--bg-hover:#f7f8fa;
+:root{
+  --bg:#f1f3f6;--bg2:#fff;--bg3:#e9ecf0;--bg-hover:#f7f8fa;
   --text:#1a1d23;--text2:#3a3f4b;--text3:#6b7280;
-  --accent:#2563eb;--accent-light:rgba(37,99,235,.08);--accent-mid:rgba(37,99,235,.15);
+  --accent:#2563eb;--accent-light:rgba(37,99,235,.08);
   --border:#dfe2e8;
   --green:#16a34a;--green-bg:rgba(22,163,74,.1);
   --red:#dc2626;--red-bg:rgba(220,38,38,.08);
   --yellow:#ca8a04;--yellow-bg:rgba(202,138,4,.1);
-  --orange:#ea580c;--orange-bg:rgba(234,88,12,.08);
+  --orange:#c2410c;--orange-bg:rgba(194,65,12,.1);
+  --darkred:#991b1b;--darkred-bg:rgba(153,27,27,.12);
   --shadow:0 1px 3px rgba(0,0,0,.06);--shadow2:0 4px 24px rgba(0,0,0,.08);
   --radius:12px;--modal-bg:rgba(0,0,0,.35);
 }
 [data-theme="dark"]{
   --bg:#111318;--bg2:#1a1d25;--bg3:#23272f;--bg-hover:#282c36;
   --text:#eaecf0;--text2:#cdd2da;--text3:#a3aab6;
-  --accent:#3b82f6;--accent-light:rgba(59,130,246,.12);--accent-mid:rgba(59,130,246,.2);
+  --accent:#3b82f6;--accent-light:rgba(59,130,246,.12);
   --border:#2a2e38;
   --green:#22c55e;--green-bg:rgba(34,197,94,.14);
   --red:#f87171;--red-bg:rgba(248,113,113,.12);
   --yellow:#facc15;--yellow-bg:rgba(250,204,21,.12);
-  --orange:#fb923c;--orange-bg:rgba(251,146,60,.12);
+  --orange:#fb923c;--orange-bg:rgba(251,146,60,.15);
+  --darkred:#ef4444;--darkred-bg:rgba(239,68,68,.18);
   --shadow:0 1px 3px rgba(0,0,0,.25);--shadow2:0 4px 24px rgba(0,0,0,.4);
   --modal-bg:rgba(0,0,0,.6);
 }
@@ -37,71 +38,57 @@
 body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
 button{font-family:inherit;cursor:pointer}input,select,textarea{font-family:inherit}
 .container{max-width:1260px;margin:0 auto;padding:0 16px}
-
-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);transition:background .3s}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
 .header-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
 .logo{display:flex;align-items:center;gap:12px}
-.logo-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;font-size:22px;font-weight:800;box-shadow:0 2px 8px rgba(37,99,235,.3)}
-.logo-text h1{font-size:18px;font-weight:800;letter-spacing:-.3px;color:var(--text)}
+.logo-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),#1d4ed8);color:#fff;font-size:22px;font-weight:800}
+.logo-text h1{font-size:18px;font-weight:800;color:var(--text)}
 .logo-text p{font-size:11px;color:var(--text3);margin-top:1px}
 .header-actions{display:flex;gap:8px;align-items:center}
 .theme-toggle{width:40px;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text2);font-size:18px;display:flex;align-items:center;justify-content:center;transition:.2s}
 .theme-toggle:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
-
 .conn-status{display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 12px;border-radius:8px;font-weight:600}
-.conn-online{background:var(--green-bg);color:var(--green)}
-.conn-offline{background:var(--red-bg);color:var(--red)}
+.conn-online{background:var(--green-bg);color:var(--green)}.conn-offline{background:var(--red-bg);color:var(--red)}
 .conn-dot{width:7px;height:7px;border-radius:50%;animation:pulse 2s infinite}
-.conn-online .conn-dot{background:var(--green)}
-.conn-offline .conn-dot{background:var(--red)}
-
+.conn-online .conn-dot{background:var(--green)}.conn-offline .conn-dot{background:var(--red)}
 .tabs{display:flex;gap:3px;background:var(--bg2);border-radius:12px;padding:4px;margin:20px 0;border:1px solid var(--border);box-shadow:var(--shadow);flex-wrap:wrap}
-.tab-btn{flex:1;padding:10px 6px;border:none;border-radius:9px;font-size:13px;font-weight:600;background:transparent;color:var(--text2);transition:.2s;min-width:80px;white-space:nowrap}
+.tab-btn{flex:1;padding:10px 6px;border:none;border-radius:9px;font-size:13px;font-weight:600;background:transparent;color:var(--text2);transition:.2s;min-width:70px;white-space:nowrap}
 .tab-btn.active{background:var(--accent);color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.25)}
 .tab-btn:not(.active):hover{background:var(--accent-light);color:var(--accent)}
-
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
 .stat-card{background:var(--bg2);border-radius:var(--radius);padding:16px;border:1px solid var(--border);box-shadow:var(--shadow)}
-.stat-label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.3px;margin-bottom:4px}
+.stat-label{font-size:11px;color:var(--text3);font-weight:600;margin-bottom:4px}
 .stat-value{font-size:24px;font-weight:800}
 .stat-value.blue{color:var(--accent)}.stat-value.green{color:var(--green)}.stat-value.yellow{color:var(--yellow)}
-
 .btn{border:none;border-radius:8px;font-weight:600;transition:.2s;display:inline-flex;align-items:center;gap:5px;font-size:13px;padding:8px 16px}
-.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1);box-shadow:0 2px 8px rgba(37,99,235,.25)}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
 .btn-secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}.btn-secondary:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
-.btn-danger{background:var(--red-bg);color:var(--red)}.btn-danger:hover{filter:brightness(1.1)}
-.btn-warning{background:var(--orange-bg);color:var(--orange)}.btn-warning:hover{filter:brightness(1.1)}
+.btn-danger{background:var(--red-bg);color:var(--red)}.btn-warning{background:var(--orange-bg);color:var(--orange)}
 .btn-sm{font-size:12px;padding:5px 11px}
 .btn-ghost{background:transparent;color:var(--text3);padding:6px 10px}.btn-ghost:hover{color:var(--accent);background:var(--accent-light)}
-
 .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);background:var(--bg2)}
 table{width:100%;border-collapse:collapse;min-width:600px}
-thead th{padding:10px 8px;font-size:11px;font-weight:700;color:var(--text3);text-align:center;white-space:nowrap;background:var(--bg);border-bottom:1px solid var(--border);letter-spacing:.4px}
+thead th{padding:10px 8px;font-size:11px;font-weight:700;color:var(--text3);text-align:center;white-space:nowrap;background:var(--bg);border-bottom:1px solid var(--border)}
 tbody td{padding:8px;text-align:center;font-size:13px;border-bottom:1px solid var(--border);color:var(--text)}
 tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-bottom:none}
 .name-cell{text-align:left!important;font-weight:600;cursor:pointer;white-space:nowrap;color:var(--text)}.name-cell:hover{color:var(--accent)}
-.session-header{cursor:pointer;min-width:76px}.session-header:hover{color:var(--accent)!important}
+.session-header{cursor:pointer;min-width:76px}
 .session-date{font-size:12px;font-weight:700;color:var(--text)}.session-venue{font-size:10px;color:var(--text3);margin-top:1px}.session-count{font-size:10px;color:var(--accent);margin-top:2px;font-weight:700}
-
+/* 4-state attendance buttons */
 .att-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);font-size:15px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center}
 .att-btn.present{background:var(--green-bg);border-color:var(--green);color:var(--green)}
-.att-btn.absent{background:rgba(234,88,12,.12);border-color:#c2410c;color:#c2410c;font-size:12px}
-.att-btn.unauth{background:rgba(185,28,28,.15);border-color:#991b1b;color:#991b1b;font-size:10px;font-weight:800}
+.att-btn.absent{background:var(--orange-bg);border-color:var(--orange);color:var(--orange);font-size:13px;font-weight:700}
+.att-btn.unauth{background:var(--darkred-bg);border-color:var(--darkred);color:var(--darkred);font-size:9px;font-weight:900;letter-spacing:-.5px}
 .att-btn.none{background:var(--bg);border-color:var(--border);color:var(--text3)}
 .att-btn:hover{transform:scale(1.08)}
-[data-theme="dark"] .att-btn.absent{background:rgba(251,146,60,.15);border-color:#fb923c;color:#fb923c}
-[data-theme="dark"] .att-btn.unauth{background:rgba(248,113,113,.18);border-color:#ef4444;color:#ef4444}
-.reason-text{font-size:11px;color:#c2410c;margin-top:3px;max-width:80px;font-weight:600;line-height:1.3}
-[data-theme="dark"] .reason-text{color:#fb923c}
-.unauth-text{font-size:10px;color:#991b1b;margin-top:3px;font-weight:800}
-[data-theme="dark"] .unauth-text{color:#ef4444}
-.warning-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;color:#b45309;background:rgba(245,158,11,.15);padding:1px 8px;border-radius:10px;margin-left:6px;white-space:nowrap}
+.reason-label{font-size:12px;color:var(--orange);margin-top:3px;max-width:80px;font-weight:700;line-height:1.3;word-break:keep-all}
+.unauth-label{font-size:11px;color:var(--darkred);margin-top:3px;font-weight:800}
+.warning-badge{display:inline-flex;align-items:center;gap:2px;font-size:11px;font-weight:700;color:#b45309;background:rgba(245,158,11,.18);padding:2px 8px;border-radius:10px;margin-left:6px}
 [data-theme="dark"] .warning-badge{color:#fbbf24;background:rgba(251,191,36,.15)}
-.hide-reasons .reason-text,.hide-reasons .unauth-text{display:none!important}
-
+/* Hide reasons mode */
+.hide-reasons .reason-label,.hide-reasons .unauth-label{display:none!important}
 .rate-badge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}
 .rate-high{background:var(--green-bg);color:var(--green)}.rate-mid{background:var(--yellow-bg);color:var(--yellow)}.rate-low{background:var(--red-bg);color:var(--red)}
-
 .member-list{display:grid;gap:8px}
 .member-card{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;background:var(--bg2);border-radius:var(--radius);padding:14px 16px;border:1px solid var(--border);box-shadow:var(--shadow);transition:.2s}
 .member-card:hover{box-shadow:var(--shadow2);border-color:var(--accent)}
@@ -109,21 +96,18 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .member-avatar{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;background:var(--accent-light);color:var(--accent)}
 .member-name{font-weight:700;font-size:15px;color:var(--text)}.member-sub{font-size:12px;color:var(--text3)}
 .member-actions{display:flex;gap:6px;flex-wrap:wrap}
-
 .modal-overlay{position:fixed;inset:0;z-index:1000;background:var(--modal-bg);display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .modal-overlay.open{display:flex}
 .modal{background:var(--bg2);border-radius:16px;padding:28px;width:460px;max-width:94vw;max-height:85vh;overflow-y:auto;border:1px solid var(--border);box-shadow:var(--shadow2)}
 .modal-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .modal-title h3{font-size:17px;font-weight:700;color:var(--text)}
-.modal-close{background:none;border:none;font-size:20px;color:var(--text3);cursor:pointer;padding:2px 6px;line-height:1}.modal-close:hover{color:var(--text)}
-
-.field{margin-bottom:14px}.field label{display:block;font-size:12px;color:var(--text3);font-weight:600;margin-bottom:5px;letter-spacing:.3px}
+.modal-close{background:none;border:none;font-size:20px;color:var(--text3);cursor:pointer;padding:2px 6px}.modal-close:hover{color:var(--text)}
+.field{margin-bottom:14px}.field label{display:block;font-size:12px;color:var(--text3);font-weight:600;margin-bottom:5px}
 .field input,.field select,.field textarea{width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;transition:.2s}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
 .field textarea{resize:vertical;min-height:60px}
 .field select option{background:var(--bg2);color:var(--text)}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-
 .date-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
 .date-cell{padding:8px 2px;border-radius:8px;border:1.5px solid transparent;text-align:center;font-size:13px;font-weight:500;cursor:pointer;transition:.15s;background:var(--bg);color:var(--text)}
 .date-cell.dow{font-size:11px;color:var(--text3);font-weight:700;cursor:default;background:none}
@@ -133,17 +117,14 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .date-cell.tuesday{color:var(--accent);font-weight:700}
 .date-cell.today{box-shadow:inset 0 0 0 1.5px var(--accent)}
 .date-cell.existing{background:var(--bg3);color:var(--text3);cursor:not-allowed;opacity:.5}
-
 .venue-per-date{margin-top:12px;display:grid;gap:8px;max-height:200px;overflow-y:auto}
 .venue-row{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:8px;padding:8px 10px;border:1px solid var(--border);font-size:13px;flex-wrap:wrap}
 .venue-row .date-label{min-width:80px;font-weight:700;color:var(--accent)}
 .venue-row select,.venue-row input{flex:1;padding:6px 8px;font-size:13px;min-width:100px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)}
-
-.reason-popup{position:fixed;z-index:2000;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;box-shadow:var(--shadow2);width:220px;display:none}
+.reason-popup{position:fixed;z-index:2000;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;box-shadow:var(--shadow2);width:240px;display:none}
 .reason-popup.open{display:block}
 .reason-popup textarea{width:100%;min-height:50px;margin-bottom:8px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;outline:none;resize:vertical}
 .reason-popup textarea:focus{border-color:var(--accent)}
-
 .empty-state{text-align:center;padding:50px 20px;color:var(--text3)}.empty-state .icon{font-size:40px;margin-bottom:10px}.empty-state p{margin-bottom:14px}
 .rest-detail{background:var(--bg);border-radius:8px;padding:8px 12px;margin-top:4px;font-size:12px;color:var(--text2)}
 .rest-badge{background:var(--orange-bg);color:var(--orange);padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600}
@@ -151,38 +132,25 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .status-resting{background:var(--orange-bg);color:var(--orange)}
 .status-returning{background:var(--green-bg);color:var(--green)}
 .status-pending{background:var(--yellow-bg);color:var(--yellow)}
-
+.dues-btn{padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;border:1.5px solid var(--border);cursor:pointer;transition:.2s}
+.dues-btn.paid{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.dues-btn.unpaid{background:var(--red-bg);border-color:var(--red);color:var(--red)}
 .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s}
 .loading-screen.hidden{opacity:0;pointer-events:none}
 .loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.fade-in{animation:fadeIn .3s ease}
+.fade-in{animation:fadeIn .3s}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@media(max-width:600px){.header-inner{gap:8px}.logo-text h1{font-size:15px}.stats-grid{grid-template-columns:repeat(3,1fr)}.tab-btn{font-size:11px;padding:8px 4px}.conn-status{font-size:10px;padding:4px 8px}}
+@media(max-width:600px){.logo-text h1{font-size:15px}.stats-grid{grid-template-columns:repeat(3,1fr)}.tab-btn{font-size:11px;padding:8px 4px}}
 </style>
 </head>
 <body>
-
-<!-- Loading Screen -->
-<div class="loading-screen" id="loadingScreen">
-  <div class="loading-spinner"></div>
-  <div style="font-size:16px;font-weight:700;color:var(--text)">WAVE FC</div>
-  <div style="font-size:12px;color:var(--text3);margin-top:4px">데이터를 불러오는 중...</div>
-</div>
-
-<header>
-  <div class="container header-inner">
-    <div class="logo">
-      <div class="logo-icon">W</div>
-      <div class="logo-text"><h1>WAVE FC 출석 및 회원 관리</h1><p>매주 화요일 정기 운동</p></div>
-    </div>
-    <div class="header-actions">
-      <div class="conn-status conn-offline" id="connStatus"><span class="conn-dot"></span><span id="connText">연결 중...</span></div>
-      <button class="theme-toggle" onclick="toggleTheme()" title="다크모드 전환">🌙</button>
-    </div>
-  </div>
-</header>
+<div class="loading-screen" id="loadingScreen"><div class="loading-spinner"></div><div style="font-size:16px;font-weight:700;color:var(--text)">WAVE FC</div><div style="font-size:12px;color:var(--text3);margin-top:4px">데이터를 불러오는 중...</div></div>
+<header><div class="container header-inner">
+  <div class="logo"><div class="logo-icon">W</div><div class="logo-text"><h1>WAVE FC 출석 및 회원 관리</h1><p>매주 화요일 정기 운동</p></div></div>
+  <div class="header-actions"><div class="conn-status conn-offline" id="connStatus"><span class="conn-dot"></span><span id="connText">연결 중...</span></div><button class="theme-toggle" onclick="toggleTheme()" title="다크모드 전환">🌙</button></div>
+</div></header>
 <div class="container" style="padding-top:8px;padding-bottom:40px">
   <div class="tabs" id="tabBar"></div>
   <div id="tab-attendance" class="tab-content fade-in"></div>
@@ -191,23 +159,18 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
   <div id="tab-retired" class="tab-content fade-in" style="display:none"></div>
   <div id="tab-all" class="tab-content fade-in" style="display:none"></div>
 </div>
-
 <div class="modal-overlay" id="memberModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3 id="memberModalTitle">회원 추가</h3><button class="modal-close" onclick="closeModal('memberModal')">✕</button></div><div id="memberForm"></div></div></div>
 <div class="modal-overlay" id="sessionModal"><div class="modal" onclick="event.stopPropagation()" style="width:520px"><div class="modal-title"><h3 id="sessionModalTitle">일정 추가</h3><button class="modal-close" onclick="closeModal('sessionModal')">✕</button></div><div id="sessionForm"></div></div></div>
 <div class="modal-overlay" id="detailModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3>회원 상세 정보</h3><button class="modal-close" onclick="closeModal('detailModal')">✕</button></div><div id="detailContent"></div></div></div>
 <div class="modal-overlay" id="restModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3 id="restModalTitle">휴식 처리</h3><button class="modal-close" onclick="closeModal('restModal')">✕</button></div><div id="restForm"></div></div></div>
 <div class="modal-overlay" id="retireModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3>탈퇴 처리</h3><button class="modal-close" onclick="closeModal('retireModal')">✕</button></div><div id="retireForm"></div></div></div>
-
 <div class="reason-popup" id="reasonPopup">
   <label style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:4px;display:block">결석 사유</label>
   <textarea id="reasonText" placeholder="사유를 입력하세요"></textarea>
   <div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn btn-sm btn-secondary" onclick="cancelReason()">취소</button><button class="btn btn-sm btn-primary" onclick="saveReason()">저장</button></div>
 </div>
-
 <script>
-// ╔══════════════════════════════════════════════╗
-// ║  🔥 Firebase 설정 — 아래 값을 본인 것으로 교체하세요  ║
-// ╚══════════════════════════════════════════════╝
+// ═══ FIREBASE CONFIG ═══
 const firebaseConfig = {
   apiKey: "AIzaSyDUj9HrX_G5ooaBqLSL_9gES8xYu8Bv-CI",
   authDomain: "wave-b0878.firebaseapp.com",
@@ -217,12 +180,10 @@ const firebaseConfig = {
   messagingSenderId: "871858545436",
   appId: "1:871858545436:web:99f1676417170ab8b6d0d9"
 };
-
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const dataRef = db.ref('wavefc');
+const db=firebase.database(),dataRef=db.ref('wavefc');
 
-// ═══ GLOBAL STATE ═══
+// ═══ CONSTANTS ═══
 const VENUES=["내서스포츠","BJ풋살장","원계풋살장","해양풋살장","직접입력"];
 const ROUTES=["블로그","인스타","당근","직접입력"];
 const REST_STATUS=["휴식중","복귀예정","복귀완료"];
@@ -232,54 +193,33 @@ const fmtDate=ds=>{const d=new Date(ds);return`${d.getMonth()+1}/${d.getDate()}(
 const korSort=(a,b)=>a.name.localeCompare(b.name,'ko');
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-let S={members:[],resting:[],retired:[],sessions:[],attendance:{},reasons:{}};
+// ═══ STATE ═══
+let S={members:[],resting:[],retired:[],sessions:[],attendance:{},reasons:{},dues:{}};
 let viewYear=new Date().getFullYear(),viewMonth=new Date().getMonth(),currentTab='attendance';
 let editingMemberId=null,editingSessionId=null,reasonTarget=null;
 let selectedDates=[],venuePerDate={},calYear,calMonth;
-let restTargetId=null,retireTargetId=null;
-let saving=false;
+let restTargetId=null,retireTargetId=null,saving=false;
 let hideReasons=false;
 
-// ═══ FIREBASE SAVE/LOAD ═══
-function saveData(){
-  if(saving)return;saving=true;
-  dataRef.set(S).then(()=>{saving=false}).catch(e=>{console.error('Save error',e);saving=false});
-}
-
-// Real-time listener — instant sync across all devices
-dataRef.on('value', snap => {
-  const d = snap.val();
-  if(d){
-    S.members=d.members||[];S.resting=d.resting||[];S.retired=d.retired||[];
-    S.sessions=d.sessions||[];S.attendance=d.attendance||{};S.reasons=d.reasons||{};
-  }
+// ═══ FIREBASE ═══
+function saveData(){if(saving)return;saving=true;dataRef.set(S).then(()=>{saving=false}).catch(e=>{console.error(e);saving=false})}
+dataRef.on('value',snap=>{
+  const d=snap.val();
+  if(d){S.members=d.members||[];S.resting=d.resting||[];S.retired=d.retired||[];S.sessions=d.sessions||[];S.attendance=d.attendance||{};S.reasons=d.reasons||{};S.dues=d.dues||{}}
   render();
-  // Hide loading screen
-  const ls=document.getElementById('loadingScreen');
-  if(ls)ls.classList.add('hidden');
+  const ls=document.getElementById('loadingScreen');if(ls)ls.classList.add('hidden');
 });
-
-// Connection status
-const connRef = db.ref('.info/connected');
-connRef.on('value', snap => {
-  const el=document.getElementById('connStatus'),txt=document.getElementById('connText');
-  if(snap.val()===true){el.className='conn-status conn-online';txt.textContent='실시간 연결됨'}
-  else{el.className='conn-status conn-offline';txt.textContent='연결 끊김'}
-});
+const connRef=db.ref('.info/connected');
+connRef.on('value',snap=>{const el=document.getElementById('connStatus'),txt=document.getElementById('connText');if(snap.val()===true){el.className='conn-status conn-online';txt.textContent='실시간 연결됨'}else{el.className='conn-status conn-offline';txt.textContent='연결 끊김'}});
 
 // ═══ THEME ═══
-function toggleTheme(){
-  const dk=document.documentElement.getAttribute('data-theme')==='dark';
-  document.documentElement.setAttribute('data-theme',dk?'':'dark');
-  document.querySelector('.theme-toggle').textContent=dk?'🌙':'☀️';
-  try{localStorage.setItem('wavefc_theme',dk?'light':'dark')}catch(e){}
-}
-(function loadTheme(){try{if(localStorage.getItem('wavefc_theme')==='dark'){document.documentElement.setAttribute('data-theme','dark');document.querySelector('.theme-toggle').textContent='☀️'}}catch(e){}})();
+function toggleTheme(){const dk=document.documentElement.getAttribute('data-theme')==='dark';document.documentElement.setAttribute('data-theme',dk?'':'dark');document.querySelector('.theme-toggle').textContent=dk?'🌙':'☀️';try{localStorage.setItem('wavefc_theme',dk?'light':'dark')}catch(e){}}
+(function(){try{if(localStorage.getItem('wavefc_theme')==='dark'){document.documentElement.setAttribute('data-theme','dark');document.querySelector('.theme-toggle').textContent='☀️'}}catch(e){}})();
 
 // ═══ TABS ═══
 const TABS=[{key:'attendance',label:'📋 출석체크'},{key:'active',label:'⚽ 활동회원'},{key:'resting',label:'😴 휴식회원'},{key:'retired',label:'📁 탈퇴회원'},{key:'all',label:'👥 회원관리'}];
 function renderTabs(){document.getElementById('tabBar').innerHTML=TABS.map(t=>`<button class="tab-btn ${currentTab===t.key?'active':''}" onclick="switchTab('${t.key}')">${t.label}</button>`).join('')}
-function switchTab(t){currentTab=t;TABS.forEach(x=>{document.getElementById('tab-'+x.key).style.display=x.key===t?'':'none'});renderTabs();render()}
+function switchTab(t){currentTab=t;TABS.forEach(x=>{const el=document.getElementById('tab-'+x.key);if(el)el.style.display=x.key===t?'':'none'});renderTabs();render()}
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',()=>el.classList.remove('open'))});
@@ -290,6 +230,15 @@ function sessStats(sid){let p=0;(S.members||[]).forEach(m=>{if(S.attendance&&S.a
 function memMonthRate(mid,ms){if(!ms.length)return{a:0,t:0,r:0};let a=0;ms.forEach(s=>{if(S.attendance&&S.attendance[mid+'_'+s.id]===true)a++});return{a,t:ms.length,r:Math.round(a/ms.length*100)}}
 function teamRate(ms){const mem=S.members||[];if(!ms.length||!mem.length)return 0;let t=0;mem.forEach(m=>ms.forEach(s=>{if(S.attendance&&S.attendance[m.id+'_'+s.id]===true)t++}));return Math.round(t/(ms.length*mem.length)*100)}
 function rb(rate,txt){const c=rate>=70?'rate-high':rate>=40?'rate-mid':'rate-low';return`<span class="rate-badge ${c}">${txt}</span>`}
+function hasWarning(mid,ms){
+  if(!ms.length)return false;
+  let unauthCount=0,curConsec=0,maxConsec=0;
+  ms.forEach(s=>{
+    const v=S.attendance&&S.attendance[mid+'_'+s.id];
+    if(v==='unauth'){unauthCount++;curConsec++;if(curConsec>maxConsec)maxConsec=curConsec}else{curConsec=0}
+  });
+  return unauthCount>=2||maxConsec>=2;
+}
 
 // ═══ RENDER ═══
 function render(){
@@ -302,25 +251,14 @@ function render(){
 
 function renderAtt(){
   const ms=getMS(),sorted=[...(S.members||[])].sort(korSort),tr=teamRate(ms);
-  // Yellow card check: 2 unauth in month OR 2 consecutive weeks unauth
-  function hasWarning(mid){
-    if(!ms.length)return false;
-    let unauthCount=0;let maxConsec=0,curConsec=0;
-    ms.forEach(s=>{
-      const v=S.attendance&&S.attendance[mid+'_'+s.id];
-      if(v==='unauth'){unauthCount++;curConsec++; if(curConsec>maxConsec)maxConsec=curConsec}
-      else{curConsec=0}
-    });
-    return unauthCount>=2||maxConsec>=2;
-  }
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
     <div style="display:flex;align-items:center;gap:8px">
       <button class="btn btn-ghost" onclick="prevMonth()">◀</button>
       <span style="font-size:18px;font-weight:800;min-width:130px;text-align:center;color:var(--text)">${viewYear}년 ${viewMonth+1}월</span>
       <button class="btn btn-ghost" onclick="nextMonth()">▶</button>
     </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-sm ${hideReasons?'btn-primary':'btn-secondary'}" onclick="toggleHideReasons()">${hideReasons?'👁 사유 보이기':'🙈 사유 숨기기'}</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm ${hideReasons?'btn-primary':'btn-secondary'}" onclick="hideReasons=!hideReasons;render()">${hideReasons?'👁 사유 보이기':'🙈 사유 숨기기'}</button>
       <button class="btn btn-primary btn-sm" onclick="openAddSessions()">+ 일정 추가</button>
     </div>
   </div>
@@ -336,18 +274,17 @@ function renderAtt(){
     ms.forEach(s=>{const st=sessStats(s.id);h+=`<th class="session-header" onclick="openEditSession('${s.id}')"><div class="session-date">${fmtDate(s.date)}</div><div class="session-venue">${esc(s.venue)}</div><div class="session-count">${st.present}/${st.total}</div></th>`});
     h+=`<th>출석률</th></tr></thead><tbody>`;
     sorted.forEach((m,i)=>{
-      const r=memMonthRate(m.id,ms),crown=m.role==='exec'?'👑 ':'';
-      const warn=hasWarning(m.id);
+      const r=memMonthRate(m.id,ms),crown=m.role==='exec'?'👑 ':'',warn=hasWarning(m.id,ms);
       h+=`<tr><td>${i+1}</td><td class="name-cell" onclick="openDetail('${m.id}')">${crown}${esc(m.name)}${warn?'<span class="warning-badge">🟨 경고</span>':''}</td><td style="font-size:12px;color:var(--text3)">${esc(m.joinDate)}</td><td>${esc(m.number)||'-'}</td>`;
       ms.forEach(s=>{
-        const key=m.id+'_'+s.id,att=S.attendance||{},rsn=S.reasons||{},val=att[key],reason=rsn[key];
+        const key=m.id+'_'+s.id,val=(S.attendance||{})[key],reason=(S.reasons||{})[key];
         let cls='none',icon='·';
         if(val===true){cls='present';icon='✓'}
         else if(val==='absent'||val===false){cls='absent';icon='✗'}
         else if(val==='unauth'){cls='unauth';icon='무단'}
         h+=`<td><button class="att-btn ${cls}" onclick="cycleAtt('${m.id}','${s.id}',event)">${icon}</button>`;
-        if((val==='absent'||val===false)&&reason){h+=`<div class="reason-text" title="${esc(reason)}">${esc(reason)}</div>`}
-        if(val==='unauth'){h+=`<div class="unauth-text">무단결석</div>`}
+        if((val==='absent'||val===false)&&reason)h+=`<div class="reason-label" title="${esc(reason)}">${esc(reason)}</div>`;
+        if(val==='unauth')h+=`<div class="unauth-label">무단결석</div>`;
         h+=`</td>`;
       });
       h+=`<td>${rb(r.r,r.r+'% ('+r.a+'/'+r.t+')')}</td></tr>`;
@@ -356,10 +293,10 @@ function renderAtt(){
   }
   document.getElementById('tab-attendance').innerHTML=h;
 }
-function toggleHideReasons(){hideReasons=!hideReasons;render()}
 
 function renderActive(){
   const sorted=[...(S.members||[])].sort(korSort);
+  const ym=viewYear+'-'+String(viewMonth+1).padStart(2,'0');
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
     <h2 style="font-size:17px;font-weight:700;color:var(--text)">활동 회원 (${(S.members||[]).length}명)</h2>
     <button class="btn btn-primary" onclick="openAddMember()">+ 회원 추가</button></div>`;
@@ -368,11 +305,14 @@ function renderActive(){
     h+='<div class="member-list">';
     sorted.forEach((m,i)=>{
       const crown=m.role==='exec'?'👑 ':'',rl=m.role==='exec'?'임원':'회원';
+      const duesKey=m.id+'_'+ym;
+      const paid=S.dues&&S.dues[duesKey];
       h+=`<div class="member-card"><div class="member-info"><div class="member-avatar">${esc(m.number)||(i+1)}</div><div>
         <div class="member-name">${crown}${esc(m.name)} <span style="font-size:11px;color:var(--accent);font-weight:600;background:var(--accent-light);padding:1px 7px;border-radius:10px">${rl}</span></div>
         <div class="member-sub">가입: ${esc(m.joinDate)||'-'}${m.phone?' · '+esc(m.phone):''}${m.route?' · 경로: '+esc(m.route):''}</div>
       </div></div>
       <div class="member-actions">
+        <button class="dues-btn ${paid?'paid':'unpaid'}" onclick="toggleDues('${m.id}','${ym}')">${paid?'✓ 납입':'✗ 미납'}</button>
         <button class="btn btn-secondary btn-sm" onclick="openEditMember('${m.id}')">수정</button>
         <button class="btn btn-warning btn-sm" onclick="openRestProcess('${m.id}')">휴식</button>
         <button class="btn btn-danger btn-sm" onclick="openRetireProcess('${m.id}')">탈퇴</button>
@@ -387,25 +327,7 @@ function renderRest(){
   const sorted=[...(S.resting||[])].sort(korSort);
   let h=`<h2 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px">휴식 회원 (${(S.resting||[]).length}명)</h2>`;
   if(!sorted.length){h+='<div class="empty-state"><div class="icon">😴</div><p>휴식 중인 회원이 없습니다</p></div>'}
-  else{
-    h+='<div class="member-list">';
-    sorted.forEach(m=>{
-      const crown=m.role==='exec'?'👑 ':'';
-      const stCls=m.restStatus==='복귀완료'?'status-returning':m.restStatus==='복귀예정'?'status-pending':'status-resting';
-      h+=`<div class="member-card"><div style="flex:1"><div class="member-name">${crown}${esc(m.name)} <span class="rest-badge">휴식</span> <span class="status-badge ${stCls}">${esc(m.restStatus||'휴식중')}</span></div>
-        <div class="member-sub">가입: ${esc(m.joinDate)||'-'}${m.phone?' · '+esc(m.phone):''}</div>
-        <div class="rest-detail">
-          <div>📅 희망 휴식 기간: ${esc(m.restPeriod)||'-'}</div>
-          <div>📝 사유: ${esc(m.restReason)||'-'}</div>
-        </div></div>
-      <div class="member-actions">
-        <button class="btn btn-secondary btn-sm" onclick="editRestInfo('${m.id}')">수정</button>
-        <button class="btn btn-primary btn-sm" onclick="restoreFromRest('${m.id}')">복귀</button>
-        <button class="btn btn-danger btn-sm" onclick="openRetireFromRest('${m.id}')">탈퇴</button>
-      </div></div>`;
-    });
-    h+='</div>';
-  }
+  else{h+='<div class="member-list">';sorted.forEach(m=>{const crown=m.role==='exec'?'👑 ':'',stCls=m.restStatus==='복귀완료'?'status-returning':m.restStatus==='복귀예정'?'status-pending':'status-resting';h+=`<div class="member-card"><div style="flex:1"><div class="member-name">${crown}${esc(m.name)} <span class="rest-badge">휴식</span> <span class="status-badge ${stCls}">${esc(m.restStatus||'휴식중')}</span></div><div class="member-sub">가입: ${esc(m.joinDate)||'-'}${m.phone?' · '+esc(m.phone):''}</div><div class="rest-detail"><div>📅 희망 휴식 기간: ${esc(m.restPeriod)||'-'}</div><div>📝 사유: ${esc(m.restReason)||'-'}</div></div></div><div class="member-actions"><button class="btn btn-secondary btn-sm" onclick="editRestInfo('${m.id}')">수정</button><button class="btn btn-primary btn-sm" onclick="restoreFromRest('${m.id}')">복귀</button><button class="btn btn-danger btn-sm" onclick="openRetireFromRest('${m.id}')">탈퇴</button></div></div>`});h+='</div>';}
   document.getElementById('tab-resting').innerHTML=h;
 }
 
@@ -413,122 +335,47 @@ function renderRet(){
   const sorted=[...(S.retired||[])].sort(korSort);
   let h=`<h2 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px">탈퇴 회원 (${(S.retired||[]).length}명)</h2>`;
   if(!sorted.length){h+='<div class="empty-state"><div class="icon">✅</div><p>탈퇴한 회원이 없습니다</p></div>'}
-  else{
-    h+='<div class="member-list">';
-    sorted.forEach(m=>{
-      h+=`<div class="member-card" style="opacity:.8"><div style="flex:1">
-        <div class="member-name" style="color:var(--text2)">${esc(m.name)} <span style="font-size:12px;color:var(--text3)">#${esc(m.number)||'-'}</span></div>
-        <div class="member-sub">가입: ${esc(m.joinDate)||'-'} · 탈퇴: ${esc(m.retiredDate)||'-'}${m.phone?' · '+esc(m.phone):''}</div>
-        ${m.retireReason?'<div class="rest-detail">탈퇴 사유: '+esc(m.retireReason)+'</div>':''}
-        ${m.retireMemo?'<div class="rest-detail" style="margin-top:4px">메모: '+esc(m.retireMemo)+'</div>':''}
-      </div>
-      <div class="member-actions">
-        <button class="btn btn-secondary btn-sm" onclick="restoreRetired('${m.id}')">복귀</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteRetired('${m.id}')">삭제</button>
-      </div></div>`;
-    });
-    h+='</div>';
-  }
+  else{h+='<div class="member-list">';sorted.forEach(m=>{h+=`<div class="member-card" style="opacity:.8"><div style="flex:1"><div class="member-name" style="color:var(--text2)">${esc(m.name)} <span style="font-size:12px;color:var(--text3)">#${esc(m.number)||'-'}</span></div><div class="member-sub">가입: ${esc(m.joinDate)||'-'} · 탈퇴: ${esc(m.retiredDate)||'-'}${m.phone?' · '+esc(m.phone):''}</div>${m.retireReason?'<div class="rest-detail">탈퇴 사유: '+esc(m.retireReason)+'</div>':''}${m.retireMemo?'<div class="rest-detail" style="margin-top:4px">메모: '+esc(m.retireMemo)+'</div>':''}</div><div class="member-actions"><button class="btn btn-secondary btn-sm" onclick="restoreRetired('${m.id}')">복귀</button><button class="btn btn-danger btn-sm" onclick="deleteRetired('${m.id}')">삭제</button></div></div>`});h+='</div>';}
   document.getElementById('tab-retired').innerHTML=h;
 }
 
 function renderAll(){
-  const actSorted=[...(S.members||[])].sort(korSort);
-  const restSorted=[...(S.resting||[])].sort(korSort);
-  const retSorted=[...(S.retired||[])].sort(korSort);
-  const totalAll=actSorted.length+restSorted.length+retSorted.length;
-  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-    <h2 style="font-size:17px;font-weight:700;color:var(--text)">전체 회원 관리 (총 ${totalAll}명)</h2>
-    <button class="btn btn-primary" onclick="openAddMember()">+ 회원 추가</button></div>`;
-
-  // 요약 카드
-  h+=`<div class="stats-grid" style="margin-bottom:20px">
-    <div class="stat-card"><div class="stat-label">활동 회원</div><div class="stat-value blue">${actSorted.length}명</div></div>
-    <div class="stat-card"><div class="stat-label">휴식 회원</div><div class="stat-value" style="color:var(--orange)">${restSorted.length}명</div></div>
-    <div class="stat-card"><div class="stat-label">탈퇴 회원</div><div class="stat-value" style="color:var(--red)">${retSorted.length}명</div></div>
+  const act=[...(S.members||[])].sort(korSort),rest=[...(S.resting||[])].sort(korSort),ret=[...(S.retired||[])].sort(korSort);
+  const total=act.length+rest.length+ret.length;
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h2 style="font-size:17px;font-weight:700;color:var(--text)">전체 회원 관리 (총 ${total}명)</h2><button class="btn btn-primary" onclick="openAddMember()">+ 회원 추가</button></div>
+  <div class="stats-grid" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-label">⚽ 활동</div><div class="stat-value blue">${act.length}명</div></div>
+    <div class="stat-card"><div class="stat-label">😴 휴식</div><div class="stat-value" style="color:var(--orange)">${rest.length}명</div></div>
+    <div class="stat-card"><div class="stat-label">📁 탈퇴</div><div class="stat-value" style="color:var(--red)">${ret.length}명</div></div>
   </div>`;
-
-  // 활동 회원
-  h+=`<h3 style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:10px;padding-left:4px">⚽ 활동 회원 (${actSorted.length}명)</h3>`;
-  if(!actSorted.length){h+='<div style="text-align:center;padding:20px;color:var(--text3);margin-bottom:20px">활동 회원이 없습니다</div>'}
-  else{
-    h+='<div class="member-list" style="margin-bottom:24px">';
-    actSorted.forEach((m,i)=>{
-      const crown=m.role==='exec'?'👑 ':'',rl=m.role==='exec'?'임원':'회원';
-      h+=`<div class="member-card"><div class="member-info"><div class="member-avatar">${esc(m.number)||(i+1)}</div><div>
-        <div class="member-name">${crown}${esc(m.name)} <span style="font-size:11px;color:var(--accent);font-weight:600;background:var(--accent-light);padding:1px 7px;border-radius:10px">${rl}</span> <span style="font-size:11px;color:var(--green);font-weight:600;background:var(--green-bg);padding:1px 7px;border-radius:10px">활동</span></div>
-        <div class="member-sub">가입: ${esc(m.joinDate)||'-'}${m.phone?' · '+esc(m.phone):''}${m.route?' · 경로: '+esc(m.route):''}</div>
-      </div></div>
-      <div class="member-actions">
-        <button class="btn btn-secondary btn-sm" onclick="openEditMember('${m.id}')">수정</button>
-        <button class="btn btn-warning btn-sm" onclick="openRestProcess('${m.id}')">휴식</button>
-        <button class="btn btn-danger btn-sm" onclick="openRetireProcess('${m.id}')">탈퇴</button>
-      </div></div>`;
-    });
-    h+='</div>';
-  }
-
-  // 휴식 회원
-  h+=`<h3 style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:10px;padding-left:4px">😴 휴식 회원 (${restSorted.length}명)</h3>`;
-  if(!restSorted.length){h+='<div style="text-align:center;padding:20px;color:var(--text3);margin-bottom:20px">휴식 회원이 없습니다</div>'}
-  else{
-    h+='<div class="member-list" style="margin-bottom:24px">';
-    restSorted.forEach(m=>{
-      const crown=m.role==='exec'?'👑 ':'';
-      const stCls=m.restStatus==='복귀완료'?'status-returning':m.restStatus==='복귀예정'?'status-pending':'status-resting';
-      h+=`<div class="member-card"><div style="flex:1"><div class="member-name">${crown}${esc(m.name)} <span class="rest-badge">휴식</span> <span class="status-badge ${stCls}">${esc(m.restStatus||'휴식중')}</span></div>
-        <div class="member-sub">가입: ${esc(m.joinDate)||'-'}${m.phone?' · '+esc(m.phone):''}</div>
-        <div class="rest-detail">📅 ${esc(m.restPeriod)||'-'} · 📝 ${esc(m.restReason)||'-'}</div></div>
-      <div class="member-actions">
-        <button class="btn btn-secondary btn-sm" onclick="editRestInfo('${m.id}')">수정</button>
-        <button class="btn btn-primary btn-sm" onclick="restoreFromRest('${m.id}')">복귀</button>
-      </div></div>`;
-    });
-    h+='</div>';
-  }
-
-  // 탈퇴 회원
-  h+=`<h3 style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:10px;padding-left:4px">📁 탈퇴 회원 (${retSorted.length}명)</h3>`;
-  if(!retSorted.length){h+='<div style="text-align:center;padding:20px;color:var(--text3)">탈퇴 회원이 없습니다</div>'}
-  else{
-    h+='<div class="member-list">';
-    retSorted.forEach(m=>{
-      h+=`<div class="member-card" style="opacity:.8"><div style="flex:1">
-        <div class="member-name" style="color:var(--text2)">${esc(m.name)} <span style="font-size:12px;color:var(--text3)">#${esc(m.number)||'-'}</span></div>
-        <div class="member-sub">가입: ${esc(m.joinDate)||'-'} · 탈퇴: ${esc(m.retiredDate)||'-'}</div>
-        ${m.retireReason?'<div class="rest-detail">사유: '+esc(m.retireReason)+'</div>':''}
-      </div>
-      <div class="member-actions">
-        <button class="btn btn-secondary btn-sm" onclick="restoreRetired('${m.id}')">복귀</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteRetired('${m.id}')">삭제</button>
-      </div></div>`;
-    });
-    h+='</div>';
-  }
+  h+=`<h3 style="font-size:15px;font-weight:700;color:var(--text);margin:0 0 10px 4px">⚽ 활동 회원 (${act.length})</h3>`;
+  if(!act.length)h+='<div style="text-align:center;padding:16px;color:var(--text3);margin-bottom:20px">없음</div>';
+  else{h+='<div class="member-list" style="margin-bottom:24px">';act.forEach((m,i)=>{const crown=m.role==='exec'?'👑 ':'';h+=`<div class="member-card"><div class="member-info"><div class="member-avatar" style="background:var(--green-bg);color:var(--green)">${esc(m.number)||(i+1)}</div><div><div class="member-name">${crown}${esc(m.name)} <span style="font-size:11px;color:var(--green);font-weight:600;background:var(--green-bg);padding:1px 7px;border-radius:10px">활동</span></div><div class="member-sub">가입: ${esc(m.joinDate)||'-'}${m.phone?' · '+esc(m.phone):''}</div></div></div><div class="member-actions"><button class="btn btn-secondary btn-sm" onclick="openEditMember('${m.id}')">수정</button></div></div>`});h+='</div>';}
+  h+=`<h3 style="font-size:15px;font-weight:700;color:var(--text);margin:0 0 10px 4px">😴 휴식 회원 (${rest.length})</h3>`;
+  if(!rest.length)h+='<div style="text-align:center;padding:16px;color:var(--text3);margin-bottom:20px">없음</div>';
+  else{h+='<div class="member-list" style="margin-bottom:24px">';rest.forEach(m=>{const crown=m.role==='exec'?'👑 ':'';h+=`<div class="member-card"><div class="member-info"><div class="member-avatar" style="background:var(--orange-bg);color:var(--orange)">😴</div><div><div class="member-name">${crown}${esc(m.name)} <span class="rest-badge">휴식</span></div><div class="member-sub">${esc(m.restPeriod)||'-'} · ${esc(m.restReason)||'-'}</div></div></div><div class="member-actions"><button class="btn btn-primary btn-sm" onclick="restoreFromRest('${m.id}')">복귀</button></div></div>`});h+='</div>';}
+  h+=`<h3 style="font-size:15px;font-weight:700;color:var(--text);margin:0 0 10px 4px">📁 탈퇴 회원 (${ret.length})</h3>`;
+  if(!ret.length)h+='<div style="text-align:center;padding:16px;color:var(--text3)">없음</div>';
+  else{h+='<div class="member-list">';ret.forEach(m=>{h+=`<div class="member-card" style="opacity:.7"><div class="member-info"><div class="member-avatar" style="background:var(--red-bg);color:var(--red)">📁</div><div><div class="member-name" style="color:var(--text3)">${esc(m.name)}</div><div class="member-sub">탈퇴: ${esc(m.retiredDate)||'-'}${m.retireReason?' · '+esc(m.retireReason):''}</div></div></div><div class="member-actions"><button class="btn btn-secondary btn-sm" onclick="restoreRetired('${m.id}')">복귀</button></div></div>`});h+='</div>';}
   document.getElementById('tab-all').innerHTML=h;
 }
 
-// ═══ MONTH ═══
+// ═══ MONTH NAV ═══
 function prevMonth(){if(viewMonth===0){viewMonth=11;viewYear--}else viewMonth--;render()}
 function nextMonth(){if(viewMonth===11){viewMonth=0;viewYear++}else viewMonth++;render()}
 
-// ═══ ATTENDANCE ═══
+// ═══ ATTENDANCE (4-state) ═══
 function cycleAtt(mid,sid,evt){
   if(!S.attendance)S.attendance={};if(!S.reasons)S.reasons={};
   const key=mid+'_'+sid,cur=S.attendance[key];
   if(cur===undefined||cur===null){
-    // none → present
-    S.attendance[key]=true;delete S.reasons[key];
-  } else if(cur===true){
-    // present → absent (open reason popup)
-    S.attendance[key]='absent';
-    openReasonPopup(mid,sid,evt);
-  } else if(cur==='absent'||cur===false){
-    // absent → unauthorized
-    S.attendance[key]='unauth';delete S.reasons[key];
-  } else if(cur==='unauth'){
-    // unauthorized → none
-    delete S.attendance[key];delete S.reasons[key];
+    S.attendance[key]=true; delete S.reasons[key]; // → 출석
+  }else if(cur===true){
+    S.attendance[key]='absent'; openReasonPopup(mid,sid,evt); // → 결석+사유
+  }else if(cur==='absent'||cur===false){
+    S.attendance[key]='unauth'; delete S.reasons[key]; // → 무단결석
+  }else if(cur==='unauth'){
+    delete S.attendance[key]; delete S.reasons[key]; // → 초기화
   }
   saveData();render();
 }
@@ -536,36 +383,30 @@ function openReasonPopup(mid,sid,evt){
   reasonTarget={m:mid,s:sid};const popup=document.getElementById('reasonPopup');
   document.getElementById('reasonText').value=(S.reasons&&S.reasons[mid+'_'+sid])||'';
   const r=evt.target.getBoundingClientRect();
-  popup.style.top=Math.min(r.bottom+8,window.innerHeight-200)+'px';
-  popup.style.left=Math.min(r.left,window.innerWidth-240)+'px';
+  popup.style.top=Math.min(r.bottom+8,window.innerHeight-220)+'px';
+  popup.style.left=Math.min(r.left,window.innerWidth-260)+'px';
   popup.classList.add('open');setTimeout(()=>document.getElementById('reasonText').focus(),50);
 }
 function saveReason(){if(!reasonTarget)return;if(!S.reasons)S.reasons={};const k=reasonTarget.m+'_'+reasonTarget.s,t=document.getElementById('reasonText').value.trim();if(t)S.reasons[k]=t;else delete S.reasons[k];document.getElementById('reasonPopup').classList.remove('open');reasonTarget=null;saveData();render()}
 function cancelReason(){document.getElementById('reasonPopup').classList.remove('open');reasonTarget=null}
 document.addEventListener('click',e=>{const p=document.getElementById('reasonPopup');if(p.classList.contains('open')&&!p.contains(e.target)&&!e.target.classList.contains('att-btn'))cancelReason()});
 
+// ═══ DUES ═══
+function toggleDues(mid,ym){if(!S.dues)S.dues={};const k=mid+'_'+ym;S.dues[k]=!S.dues[k];saveData();render()}
+
 // ═══ MEMBER CRUD ═══
 function openAddMember(){editingMemberId=null;document.getElementById('memberModalTitle').textContent='회원 추가';document.getElementById('memberForm').innerHTML=mfHtml({});openModal('memberModal')}
 function openEditMember(id){editingMemberId=id;const m=(S.members||[]).find(x=>x.id===id)||(S.resting||[]).find(x=>x.id===id);if(!m)return;document.getElementById('memberModalTitle').textContent='회원 수정';document.getElementById('memberForm').innerHTML=mfHtml(m);openModal('memberModal')}
 function mfHtml(m){
   const rv=m.route||'',isCR=rv&&!ROUTES.slice(0,3).includes(rv),sel=isCR?'직접입력':rv||'';
-  return`
-    <div class="field"><label>이름 *</label><input id="mName" value="${esc(m.name||'')}" placeholder="이름"></div>
+  return`<div class="field"><label>이름 *</label><input id="mName" value="${esc(m.name||'')}" placeholder="이름"></div>
     <div class="field"><label>구분</label><select id="mRole"><option value="member" ${m.role!=='exec'?'selected':''}>회원</option><option value="exec" ${m.role==='exec'?'selected':''}>임원</option></select></div>
-    <div class="field-row">
-      <div class="field"><label>등번호</label><input id="mNumber" value="${esc(m.number||'')}" placeholder=""></div>
-      <div class="field"><label>전화번호</label><input id="mPhone" value="${esc(m.phone||'')}" placeholder="010-0000-0000"></div>
-    </div>
+    <div class="field-row"><div class="field"><label>등번호</label><input id="mNumber" value="${esc(m.number||'')}" placeholder=""></div><div class="field"><label>전화번호</label><input id="mPhone" value="${esc(m.phone||'')}" placeholder="010-0000-0000"></div></div>
     <div class="field"><label>가입일자</label><input id="mJoin" value="${esc(m.joinDate||'')}" placeholder="예: 2025-03-01"></div>
-    <div class="field"><label>가입 경로</label>
-      <select id="mRouteSelect" onchange="document.getElementById('mRouteCustomWrap').style.display=this.value==='직접입력'?'block':'none'">
-        <option value="">선택안함</option>${ROUTES.map(r=>`<option value="${r}" ${sel===r?'selected':''}>${r}</option>`).join('')}
-      </select></div>
+    <div class="field"><label>가입 경로</label><select id="mRouteSelect" onchange="document.getElementById('mRouteCustomWrap').style.display=this.value==='직접입력'?'block':'none'"><option value="">선택안함</option>${ROUTES.map(r=>`<option value="${r}" ${sel===r?'selected':''}>${r}</option>`).join('')}</select></div>
     <div class="field" id="mRouteCustomWrap" style="display:${isCR||sel==='직접입력'?'block':'none'}"><label>경로 직접 입력</label><input id="mRouteCustom" value="${isCR?esc(rv):''}" placeholder="가입 경로 입력"></div>
     <div class="field"><label>기타 메모</label><textarea id="mMemo" placeholder="메모 입력 (사는지역, 운동경험 여부, 참고사항 등)">${esc(m.memo||'')}</textarea></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
-      <button class="btn btn-secondary" onclick="closeModal('memberModal')">취소</button>
-      <button class="btn btn-primary" onclick="saveMember()">${editingMemberId?'저장':'추가'}</button></div>`;
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button class="btn btn-secondary" onclick="closeModal('memberModal')">취소</button><button class="btn btn-primary" onclick="saveMember()">${editingMemberId?'저장':'추가'}</button></div>`;
 }
 function saveMember(){
   const name=document.getElementById('mName').value.trim();if(!name)return alert('이름을 입력해주세요.');
@@ -579,64 +420,17 @@ function saveMember(){
 }
 
 // ═══ REST ═══
-function openRestProcess(id){
-  restTargetId=id;const m=(S.members||[]).find(x=>x.id===id);if(!m)return;
-  document.getElementById('restModalTitle').textContent=esc(m.name)+' 휴식 처리';
-  document.getElementById('restForm').innerHTML=`
-    <div class="field"><label>희망 휴식 기간</label><input id="rPeriod" placeholder="예: 2025년 4월~5월, 1개월 등"></div>
-    <div class="field"><label>사유</label><textarea id="rReason" placeholder="휴식 사유를 입력하세요"></textarea></div>
-    <div class="field"><label>진행 현황</label><select id="rStatus">${REST_STATUS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
-      <button class="btn btn-secondary" onclick="closeModal('restModal')">취소</button>
-      <button class="btn btn-primary" onclick="confirmRest()">휴식 처리</button></div>`;
-  openModal('restModal');
-}
-function confirmRest(){
-  const m=(S.members||[]).find(x=>x.id===restTargetId);if(!m)return;
-  S.members=S.members.filter(x=>x.id!==restTargetId);
-  if(!S.resting)S.resting=[];
-  S.resting.push({...m,restPeriod:document.getElementById('rPeriod').value.trim(),restReason:document.getElementById('rReason').value.trim(),restStatus:document.getElementById('rStatus').value,restDate:new Date().toISOString().slice(0,10)});
-  saveData();closeModal('restModal');render();
-}
-function editRestInfo(id){
-  restTargetId=id;const m=(S.resting||[]).find(x=>x.id===id);if(!m)return;
-  document.getElementById('restModalTitle').textContent=esc(m.name)+' 휴식 정보 수정';
-  document.getElementById('restForm').innerHTML=`
-    <div class="field"><label>희망 휴식 기간</label><input id="rPeriod" value="${esc(m.restPeriod||'')}"></div>
-    <div class="field"><label>사유</label><textarea id="rReason">${esc(m.restReason||'')}</textarea></div>
-    <div class="field"><label>진행 현황</label><select id="rStatus">${REST_STATUS.map(s=>`<option value="${s}" ${m.restStatus===s?'selected':''}>${s}</option>`).join('')}</select></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
-      <button class="btn btn-secondary" onclick="closeModal('restModal')">취소</button>
-      <button class="btn btn-primary" onclick="updateRest()">저장</button></div>`;
-  openModal('restModal');
-}
+function openRestProcess(id){restTargetId=id;const m=(S.members||[]).find(x=>x.id===id);if(!m)return;document.getElementById('restModalTitle').textContent=esc(m.name)+' 휴식 처리';document.getElementById('restForm').innerHTML=`<div class="field"><label>희망 휴식 기간</label><input id="rPeriod" placeholder="예: 2025년 4월~5월, 1개월 등"></div><div class="field"><label>사유</label><textarea id="rReason" placeholder="휴식 사유를 입력하세요"></textarea></div><div class="field"><label>진행 현황</label><select id="rStatus">${REST_STATUS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button class="btn btn-secondary" onclick="closeModal('restModal')">취소</button><button class="btn btn-primary" onclick="confirmRest()">휴식 처리</button></div>`;openModal('restModal')}
+function confirmRest(){const m=(S.members||[]).find(x=>x.id===restTargetId);if(!m)return;S.members=S.members.filter(x=>x.id!==restTargetId);if(!S.resting)S.resting=[];S.resting.push({...m,restPeriod:document.getElementById('rPeriod').value.trim(),restReason:document.getElementById('rReason').value.trim(),restStatus:document.getElementById('rStatus').value,restDate:new Date().toISOString().slice(0,10)});saveData();closeModal('restModal');render()}
+function editRestInfo(id){restTargetId=id;const m=(S.resting||[]).find(x=>x.id===id);if(!m)return;document.getElementById('restModalTitle').textContent=esc(m.name)+' 휴식 정보 수정';document.getElementById('restForm').innerHTML=`<div class="field"><label>희망 휴식 기간</label><input id="rPeriod" value="${esc(m.restPeriod||'')}"></div><div class="field"><label>사유</label><textarea id="rReason">${esc(m.restReason||'')}</textarea></div><div class="field"><label>진행 현황</label><select id="rStatus">${REST_STATUS.map(s=>`<option value="${s}" ${m.restStatus===s?'selected':''}>${s}</option>`).join('')}</select></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button class="btn btn-secondary" onclick="closeModal('restModal')">취소</button><button class="btn btn-primary" onclick="updateRest()">저장</button></div>`;openModal('restModal')}
 function updateRest(){S.resting=(S.resting||[]).map(m=>m.id===restTargetId?{...m,restPeriod:document.getElementById('rPeriod').value.trim(),restReason:document.getElementById('rReason').value.trim(),restStatus:document.getElementById('rStatus').value}:m);saveData();closeModal('restModal');render()}
 function restoreFromRest(id){const m=(S.resting||[]).find(x=>x.id===id);if(!m||!confirm(m.name+' 회원을 복귀시키겠습니까?'))return;S.resting=S.resting.filter(x=>x.id!==id);const{restPeriod,restReason,restStatus,restDate,...base}=m;if(!S.members)S.members=[];S.members.push(base);saveData();render()}
 function openRetireFromRest(id){retireTargetId=id;showRetireForm((S.resting||[]).find(x=>x.id===id),'resting')}
 
 // ═══ RETIRE ═══
 function openRetireProcess(id){retireTargetId=id;showRetireForm((S.members||[]).find(x=>x.id===id),'members')}
-function showRetireForm(m,from){
-  if(!m)return;
-  document.getElementById('retireForm').innerHTML=`
-    <p style="margin-bottom:16px;color:var(--text2)"><strong>${esc(m.name)}</strong> 회원을 탈퇴 처리합니다.</p>
-    <div class="field"><label>탈퇴일시</label><input id="rtDate" value="${new Date().toISOString().slice(0,10)}" placeholder="예: 2025-04-01"></div>
-    <div class="field"><label>탈퇴 사유</label><textarea id="rtReason" placeholder="탈퇴 사유를 입력하세요"></textarea></div>
-    <div class="field"><label>추가 메모사항</label><textarea id="rtMemo" placeholder="추가 메모사항"></textarea></div>
-    <input type="hidden" id="rtFrom" value="${from}">
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
-      <button class="btn btn-secondary" onclick="closeModal('retireModal')">취소</button>
-      <button class="btn btn-danger" onclick="confirmRetire()">탈퇴 처리</button></div>`;
-  openModal('retireModal');
-}
-function confirmRetire(){
-  const from=document.getElementById('rtFrom').value;let m;
-  if(from==='members'){m=(S.members||[]).find(x=>x.id===retireTargetId);S.members=(S.members||[]).filter(x=>x.id!==retireTargetId)}
-  else{m=(S.resting||[]).find(x=>x.id===retireTargetId);S.resting=(S.resting||[]).filter(x=>x.id!==retireTargetId);if(m){const{restPeriod,restReason,restStatus,restDate,...base}=m;m=base}}
-  if(!m)return;if(!S.retired)S.retired=[];
-  S.retired.push({...m,retiredDate:document.getElementById('rtDate').value.trim(),retireReason:document.getElementById('rtReason').value.trim(),retireMemo:document.getElementById('rtMemo').value.trim()});
-  saveData();closeModal('retireModal');render();
-}
+function showRetireForm(m,from){if(!m)return;document.getElementById('retireForm').innerHTML=`<p style="margin-bottom:16px;color:var(--text2)"><strong>${esc(m.name)}</strong> 회원을 탈퇴 처리합니다.</p><div class="field"><label>탈퇴일시</label><input id="rtDate" value="${new Date().toISOString().slice(0,10)}" placeholder="예: 2025-04-01"></div><div class="field"><label>탈퇴 사유</label><textarea id="rtReason" placeholder="탈퇴 사유를 입력하세요"></textarea></div><div class="field"><label>추가 메모사항</label><textarea id="rtMemo" placeholder="추가 메모사항"></textarea></div><input type="hidden" id="rtFrom" value="${from}"><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button class="btn btn-secondary" onclick="closeModal('retireModal')">취소</button><button class="btn btn-danger" onclick="confirmRetire()">탈퇴 처리</button></div>`;openModal('retireModal')}
+function confirmRetire(){const from=document.getElementById('rtFrom').value;let m;if(from==='members'){m=(S.members||[]).find(x=>x.id===retireTargetId);S.members=(S.members||[]).filter(x=>x.id!==retireTargetId)}else{m=(S.resting||[]).find(x=>x.id===retireTargetId);S.resting=(S.resting||[]).filter(x=>x.id!==retireTargetId);if(m){const{restPeriod,restReason,restStatus,restDate,...base}=m;m=base}}if(!m)return;if(!S.retired)S.retired=[];S.retired.push({...m,retiredDate:document.getElementById('rtDate').value.trim(),retireReason:document.getElementById('rtReason').value.trim(),retireMemo:document.getElementById('rtMemo').value.trim()});saveData();closeModal('retireModal');render()}
 function restoreRetired(id){const m=(S.retired||[]).find(x=>x.id===id);if(!m||!confirm(m.name+' 회원을 복귀시키겠습니까?'))return;S.retired=S.retired.filter(x=>x.id!==id);const{retiredDate,retireReason,retireMemo,...base}=m;if(!S.members)S.members=[];S.members.push(base);saveData();render()}
 function deleteRetired(id){const m=(S.retired||[]).find(x=>x.id===id);if(!m||!confirm(m.name+' 회원을 완전 삭제하시겠습니까?'))return;S.retired=S.retired.filter(x=>x.id!==id);saveData();render()}
 
@@ -646,25 +440,7 @@ function openDetail(id){
   const allS=[...(S.sessions||[])].sort((a,b)=>a.date.localeCompare(b.date));
   const att=allS.filter(s=>S.attendance&&S.attendance[m.id+'_'+s.id]===true).length,tot=allS.length;
   const rate=tot?Math.round(att/tot*100):0,crown=m.role==='exec'?'👑 ':'',rl=m.role==='exec'?'임원':'회원';
-  document.getElementById('detailContent').innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-      <div class="stat-card"><div class="stat-label">이름</div><div style="font-weight:700;color:var(--text)">${crown}${esc(m.name)}</div></div>
-      <div class="stat-card"><div class="stat-label">구분</div><div style="font-weight:700;color:var(--text)">${rl}</div></div>
-      <div class="stat-card"><div class="stat-label">등번호</div><div style="font-weight:700;color:var(--text)">${esc(m.number)||'-'}</div></div>
-      <div class="stat-card"><div class="stat-label">전화번호</div><div style="font-weight:700;color:var(--text)">${esc(m.phone)||'-'}</div></div>
-      <div class="stat-card"><div class="stat-label">가입일</div><div style="font-weight:700;color:var(--text)">${esc(m.joinDate)||'-'}</div></div>
-      <div class="stat-card"><div class="stat-label">가입 경로</div><div style="font-weight:700;color:var(--text)">${esc(m.route)||'-'}</div></div>
-    </div>
-    <div style="background:var(--accent-light);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:14px;color:var(--text2)">전체 출석률</span>
-      <span style="font-size:20px;font-weight:800;color:var(--accent)">${rate}% (${att}/${tot})</span>
-    </div>
-    ${m.memo?'<div class="stat-card" style="margin-bottom:16px"><div class="stat-label">메모</div><div style="color:var(--text2)">'+esc(m.memo)+'</div></div>':''}
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn btn-secondary" onclick="closeModal('detailModal');openEditMember('${m.id}')">수정</button>
-      <button class="btn btn-warning" onclick="closeModal('detailModal');openRestProcess('${m.id}')">휴식</button>
-      <button class="btn btn-danger" onclick="closeModal('detailModal');openRetireProcess('${m.id}')">탈퇴</button>
-    </div>`;
+  document.getElementById('detailContent').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"><div class="stat-card"><div class="stat-label">이름</div><div style="font-weight:700;color:var(--text)">${crown}${esc(m.name)}</div></div><div class="stat-card"><div class="stat-label">구분</div><div style="font-weight:700;color:var(--text)">${rl}</div></div><div class="stat-card"><div class="stat-label">등번호</div><div style="font-weight:700;color:var(--text)">${esc(m.number)||'-'}</div></div><div class="stat-card"><div class="stat-label">전화번호</div><div style="font-weight:700;color:var(--text)">${esc(m.phone)||'-'}</div></div><div class="stat-card"><div class="stat-label">가입일</div><div style="font-weight:700;color:var(--text)">${esc(m.joinDate)||'-'}</div></div><div class="stat-card"><div class="stat-label">가입 경로</div><div style="font-weight:700;color:var(--text)">${esc(m.route)||'-'}</div></div></div><div style="background:var(--accent-light);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;color:var(--text2)">전체 출석률</span><span style="font-size:20px;font-weight:800;color:var(--accent)">${rate}% (${att}/${tot})</span></div>${m.memo?'<div class="stat-card" style="margin-bottom:16px"><div class="stat-label">메모</div><div style="color:var(--text2)">'+esc(m.memo)+'</div></div>':''}<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal('detailModal');openEditMember('${m.id}')">수정</button><button class="btn btn-warning" onclick="closeModal('detailModal');openRestProcess('${m.id}')">휴식</button><button class="btn btn-danger" onclick="closeModal('detailModal');openRetireProcess('${m.id}')">탈퇴</button></div>`;
   openModal('detailModal');
 }
 
@@ -672,37 +448,16 @@ function openDetail(id){
 function openAddSessions(){editingSessionId=null;selectedDates=[];venuePerDate={};calYear=viewYear;calMonth=viewMonth;document.getElementById('sessionModalTitle').textContent='일정 추가 (여러 날짜 선택 가능)';renderSF();openModal('sessionModal')}
 function openEditSession(id){editingSessionId=id;const s=(S.sessions||[]).find(x=>x.id===id);if(!s)return;const d=new Date(s.date);calYear=d.getFullYear();calMonth=d.getMonth();selectedDates=[s.date];venuePerDate={};venuePerDate[s.date]=s.venue;document.getElementById('sessionModalTitle').textContent='일정 수정';renderSF();openModal('sessionModal')}
 function renderSF(){
-  const existing=new Set((S.sessions||[]).map(s=>s.date));
-  if(editingSessionId){const es=(S.sessions||[]).find(x=>x.id===editingSessionId);if(es)existing.delete(es.date)}
+  const existing=new Set((S.sessions||[]).map(s=>s.date));if(editingSessionId){const es=(S.sessions||[]).find(x=>x.id===editingSessionId);if(es)existing.delete(es.date)}
   const first=new Date(calYear,calMonth,1),lastDay=new Date(calYear,calMonth+1,0).getDate(),startDow=first.getDay(),todayStr=new Date().toISOString().slice(0,10);
-  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-    <button class="btn btn-ghost btn-sm" onclick="calPrev()">◀</button>
-    <span style="font-weight:700;font-size:15px;color:var(--text)">${calYear}년 ${calMonth+1}월</span>
-    <button class="btn btn-ghost btn-sm" onclick="calNext()">▶</button></div>
-    <div class="date-grid">${DOW.map(d=>'<div class="date-cell dow">'+d+'</div>').join('')}`;
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><button class="btn btn-ghost btn-sm" onclick="calPrev()">◀</button><span style="font-weight:700;font-size:15px;color:var(--text)">${calYear}년 ${calMonth+1}월</span><button class="btn btn-ghost btn-sm" onclick="calNext()">▶</button></div><div class="date-grid">${DOW.map(d=>'<div class="date-cell dow">'+d+'</div>').join('')}`;
   for(let i=0;i<startDow;i++)h+='<div class="date-cell empty"></div>';
-  for(let d=1;d<=lastDay;d++){
-    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isTue=new Date(calYear,calMonth,d).getDay()===2,isToday=ds===todayStr,isExist=existing.has(ds),isSel=selectedDates.includes(ds);
-    let cls='date-cell';if(isExist)cls+=' existing';else cls+=' selectable';if(isSel)cls+=' selected';if(isTue&&!isSel)cls+=' tuesday';if(isToday)cls+=' today';
-    h+=`<div class="${cls}" ${!isExist?`onclick="toggleDate('${ds}')"`:''}>${d}</div>`;
-  }
+  for(let d=1;d<=lastDay;d++){const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const isTue=new Date(calYear,calMonth,d).getDay()===2,isToday=ds===todayStr,isExist=existing.has(ds),isSel=selectedDates.includes(ds);let cls='date-cell';if(isExist)cls+=' existing';else cls+=' selectable';if(isSel)cls+=' selected';if(isTue&&!isSel)cls+=' tuesday';if(isToday)cls+=' today';h+=`<div class="${cls}" ${!isExist?`onclick="toggleDate('${ds}')"`:''}>${d}</div>`}
   h+='</div>';
-  if(selectedDates.length){
-    h+='<div class="venue-per-date">';
-    [...selectedDates].sort().forEach(ds=>{
-      const v=venuePerDate[ds]||'내서스포츠',isC=v&&!VENUES.slice(0,4).includes(v)&&v!=='직접입력',sel=isC?'직접입력':v;
-      h+=`<div class="venue-row"><span class="date-label">${fmtDate(ds)}</span>
-        <select onchange="changeVenue('${ds}',this.value)">${VENUES.map(vn=>`<option value="${vn}" ${sel===vn?'selected':''}>${vn}</option>`).join('')}</select>
-        ${sel==='직접입력'||isC?`<input value="${isC?esc(v):''}" placeholder="장소명 입력" onchange="setCV('${ds}',this.value)">`:''}
-      </div>`;
-    });
-    h+='</div>';
-  }
+  if(selectedDates.length){h+='<div class="venue-per-date">';[...selectedDates].sort().forEach(ds=>{const v=venuePerDate[ds]||'내서스포츠',isC=v&&!VENUES.slice(0,4).includes(v)&&v!=='직접입력',sel=isC?'직접입력':v;h+=`<div class="venue-row"><span class="date-label">${fmtDate(ds)}</span><select onchange="changeVenue('${ds}',this.value)">${VENUES.map(vn=>`<option value="${vn}" ${sel===vn?'selected':''}>${vn}</option>`).join('')}</select>${sel==='직접입력'||isC?`<input value="${isC?esc(v):''}" placeholder="장소명 입력" onchange="setCV('${ds}',this.value)">`:''}  </div>`});h+='</div>'}
   h+=`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap">`;
   if(editingSessionId)h+=`<button class="btn btn-danger" style="margin-right:auto" onclick="deleteSession()">삭제</button>`;
-  h+=`<button class="btn btn-secondary" onclick="closeModal('sessionModal')">취소</button>
-    <button class="btn btn-primary" onclick="saveSessions()">${editingSessionId?'저장':'추가 ('+selectedDates.length+'개)'}</button></div>`;
+  h+=`<button class="btn btn-secondary" onclick="closeModal('sessionModal')">취소</button><button class="btn btn-primary" onclick="saveSessions()">${editingSessionId?'저장':'추가 ('+selectedDates.length+'개)'}</button></div>`;
   document.getElementById('sessionForm').innerHTML=h;
 }
 function toggleDate(ds){if(editingSessionId){selectedDates=[ds]}else{const i=selectedDates.indexOf(ds);if(i>=0){selectedDates.splice(i,1);delete venuePerDate[ds]}else{selectedDates.push(ds);venuePerDate[ds]='내서스포츠'}}renderSF()}
@@ -710,13 +465,7 @@ function changeVenue(ds,v){venuePerDate[ds]=v==='직접입력'?'':v;renderSF()}
 function setCV(ds,v){venuePerDate[ds]=v.trim()||'미정'}
 function calPrev(){if(calMonth===0){calMonth=11;calYear--}else calMonth--;renderSF()}
 function calNext(){if(calMonth===11){calMonth=0;calYear++}else calMonth++;renderSF()}
-function saveSessions(){
-  if(!selectedDates.length)return alert('날짜를 선택해주세요.');
-  if(!S.sessions)S.sessions=[];
-  if(editingSessionId){const ds=selectedDates[0],venue=venuePerDate[ds]||'내서스포츠';S.sessions=S.sessions.map(s=>s.id===editingSessionId?{...s,date:ds,venue:venue||'내서스포츠'}:s)}
-  else{selectedDates.forEach(ds=>{if(!S.sessions.some(s=>s.date===ds))S.sessions.push({id:genId(),date:ds,venue:venuePerDate[ds]||'내서스포츠'})})}
-  saveData();closeModal('sessionModal');render();
-}
+function saveSessions(){if(!selectedDates.length)return alert('날짜를 선택해주세요.');if(!S.sessions)S.sessions=[];if(editingSessionId){const ds=selectedDates[0],venue=venuePerDate[ds]||'내서스포츠';S.sessions=S.sessions.map(s=>s.id===editingSessionId?{...s,date:ds,venue:venue||'내서스포츠'}:s)}else{selectedDates.forEach(ds=>{if(!S.sessions.some(s=>s.date===ds))S.sessions.push({id:genId(),date:ds,venue:venuePerDate[ds]||'내서스포츠'})})}saveData();closeModal('sessionModal');render()}
 function deleteSession(){if(!confirm('이 일정을 삭제하시겠습니까?'))return;const sid=editingSessionId;S.sessions=(S.sessions||[]).filter(s=>s.id!==sid);if(S.attendance)Object.keys(S.attendance).forEach(k=>{if(k.endsWith('_'+sid))delete S.attendance[k]});if(S.reasons)Object.keys(S.reasons).forEach(k=>{if(k.endsWith('_'+sid))delete S.reasons[k]});saveData();closeModal('sessionModal');render()}
 
 // ═══ INIT ═══
