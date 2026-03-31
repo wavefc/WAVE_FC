@@ -77,12 +77,17 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 /* 4-state attendance buttons */
 .att-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);font-size:15px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center}
 .att-btn.present{background:var(--green-bg);border-color:var(--green);color:var(--green)}
-.att-btn.absent{background:var(--orange-bg);border-color:var(--orange);color:var(--orange);font-size:13px;font-weight:700}
-.att-btn.unauth{background:var(--darkred-bg);border-color:var(--darkred);color:var(--darkred);font-size:9px;font-weight:900;letter-spacing:-.5px}
+.att-btn.absent{background:rgba(234,88,12,.12);border-color:#ea580c;color:#ea580c;font-size:13px;font-weight:700}
+.att-btn.unauth{background:rgba(220,38,38,.14);border-color:#dc2626;color:#dc2626;font-size:9px;font-weight:900;letter-spacing:-.5px}
 .att-btn.none{background:var(--bg);border-color:var(--border);color:var(--text3)}
 .att-btn:hover{transform:scale(1.08)}
-.reason-label{font-size:12px;color:var(--orange);margin-top:3px;max-width:80px;font-weight:700;line-height:1.3;word-break:keep-all}
-.unauth-label{font-size:11px;color:var(--darkred);margin-top:3px;font-weight:800}
+[data-theme="dark"] .att-btn.absent{background:rgba(251,146,60,.15);border-color:#f97316;color:#f97316}
+[data-theme="dark"] .att-btn.unauth{background:rgba(248,113,113,.18);border-color:#ef4444;color:#ef4444}
+.att-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.reason-label{font-size:12px;color:#ea580c;margin-top:3px;max-width:80px;font-weight:700;line-height:1.3;word-break:keep-all;text-align:center}
+.unauth-label{font-size:11px;color:#dc2626;margin-top:3px;font-weight:800;text-align:center}
+[data-theme="dark"] .reason-label{color:#f97316}
+[data-theme="dark"] .unauth-label{color:#ef4444}
 .warning-badge{display:inline-flex;align-items:center;gap:2px;font-size:11px;font-weight:700;color:#b45309;background:rgba(245,158,11,.18);padding:2px 8px;border-radius:10px;margin-left:6px}
 [data-theme="dark"] .warning-badge{color:#fbbf24;background:rgba(251,191,36,.15)}
 /* Hide reasons mode */
@@ -292,10 +297,10 @@ function renderAtt(){
         if(val===true){cls='present';icon='✓'}
         else if(val==='absent'||val===false){cls='absent';icon='✗'}
         else if(val==='unauth'){cls='unauth';icon='무단'}
-        h+=`<td><button class="att-btn ${cls}" onclick="cycleAtt('${m.id}','${s.id}',event)">${icon}</button>`;
+        h+=`<td><div class="att-cell"><button class="att-btn ${cls}" onclick="cycleAtt('${m.id}','${s.id}',event)">${icon}</button>`;
         if((val==='absent'||val===false)&&reason)h+=`<div class="reason-label" title="${esc(reason)}">${esc(reason)}</div>`;
         if(val==='unauth')h+=`<div class="unauth-label">무단결석</div>`;
-        h+=`</td>`;
+        h+=`</div></td>`;
       });
       h+=`<td>${rb(r.r,r.r+'% ('+r.a+'/'+r.t+')')}</td></tr>`;
     });
