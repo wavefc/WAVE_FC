@@ -286,6 +286,13 @@ function renderAtt(){
       if(hasData)allList.push(m);
     });
   }
+  // Filter: only show members whose joinDate is on or before the viewed month
+  const viewEnd=new Date(viewYear,viewMonth+1,0); // last day of viewed month
+  allList=allList.filter(m=>{
+    if(!m.joinDate)return true; // no date = always show
+    const jd=new Date(m.joinDate);
+    return jd<=viewEnd;
+  });
   const sorted=allList.sort(korSort);
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
     <div style="display:flex;align-items:center;gap:8px">
