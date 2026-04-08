@@ -208,9 +208,10 @@ const ROUTES=["블로그","인스타","당근","직접입력"];
 const REST_STATUS=["휴식중","복귀예정","복귀완료"];
 const DOW=["일","월","화","수","목","금","토"];
 const genId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-const fmtDate=ds=>{const d=new Date(ds);return`${d.getMonth()+1}/${d.getDate()}(${DOW[d.getDay()]})`};
+const fmtDate=ds=>{const d=new Date(ds.replace(/\./g,'-'));return`${d.getMonth()+1}/${d.getDate()}(${DOW[d.getDay()]})`};
 const korSort=(a,b)=>a.name.localeCompare(b.name,'ko');
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const todayDot=()=>{const d=new Date();return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')};
 
 // ═══ STATE ═══
 let S={members:[],resting:[],retired:[],trial:[],sessions:[],attendance:{},reasons:{},dues:{}};
@@ -286,12 +287,18 @@ function renderAtt(){
       if(hasData)allList.push(m);
     });
   }
-  // Filter: only show members whose joinDate is on or before the viewed month
-  const viewEnd=new Date(viewYear,viewMonth+1,0); // last day of viewed month
+  // Filter: show members who were active during the viewed month
+  // parseDate handles both 2025-03-01 and 2025.03.01
+  const viewStart=new Date(viewYear,viewMonth,1);
+  const viewEnd=new Date(viewYear,viewMonth+1,0);
+  function pd(s){if(!s)return null;const d=new Date(s.replace(/\./g,'-'));return isNaN(d)?null:d}
   allList=allList.filter(m=>{
-    if(!m.joinDate)return true; // no date = always show
-    const jd=new Date(m.joinDate);
-    return jd<=viewEnd;
+    const jd=pd(m.joinDate);
+    if(jd && jd>viewEnd) return false; // joined after this month
+    // For retired members, check if they left before this month
+    const rd=pd(m.retiredDate||m.restDate);
+    if(rd && m._status && rd<viewStart) return false; // left before this month started
+    return true;
   });
   const sorted=allList.sort(korSort);
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
@@ -376,7 +383,7 @@ function renderRest(){
   const sorted=[...(S.resting||[])].sort(korSort);
   let h=`<h2 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px">휴식 회원 (${(S.resting||[]).length}명)</h2>`;
   if(!sorted.length){h+='<div class="empty-state"><div class="icon">😴</div><p>휴식 중인 회원이 없습니다</p></div>'}
-  else{h+='<div class="member-list">';sorted.forEach(m=>{const crown=m.role==='exec'?'👑 ':'',stCls=m.restStatus==='복귀완료'?'status-returning':m.restStatus==='복귀예정'?'status-pending':'status-resting';h+=`<div class="member-card"><div style="flex:1"><div class="member-name">${crown}${esc(m.name)} <span class="rest-badge">휴식</span> <span class="status-badge ${stCls}">${esc(m.restStatus||'휴식중')}</span></div><div class="member-sub">가입: ${esc(m.joinDate)||'-'}${m.phone?' · '+esc(m.phone):''}</div><div class="rest-detail"><div>📅 희망 휴식 기간: ${esc(m.restPeriod)||'-'}</div><div>📝 사유: ${esc(m.restReason)||'-'}</div></div></div><div class="member-actions"><button class="btn btn-secondary btn-sm" onclick="editRestInfo('${m.id}')">수정</button><button class="btn btn-primary btn-sm" onclick="restoreFromRest('${m.id}')">복귀</button><button class="btn btn-danger btn-sm" onclick="openRetireFromRest('${m.id}')">탈퇴</button></div></div>`});h+='</div>';}
+  else{h+='<div class="member-list">';sorted.forEach(m=>{const crown=m.role==='exec'?'👑 ':'',stCls=m.restStatus==='복귀완료'?'status-returning':m.restStatus==='복귀예정'?'status-pending':'status-resting';h+=`<div class="member-card"><div style="flex:1"><div class="member-name">${crown}${esc(m.name)} <span class="status-badge ${stCls}">${esc(m.restStatus||'휴식중')}</span></div><div class="member-sub">가입: ${esc(m.joinDate)||'-'}${m.phone?' · '+esc(m.phone):''}</div><div class="rest-detail"><div>📅 희망 휴식 기간: ${esc(m.restPeriod)||'-'}</div><div>📝 사유: ${esc(m.restReason)||'-'}</div></div></div><div class="member-actions"><button class="btn btn-secondary btn-sm" onclick="editRestInfo('${m.id}')">수정</button><button class="btn btn-primary btn-sm" onclick="restoreFromRest('${m.id}')">복귀</button><button class="btn btn-danger btn-sm" onclick="openRetireFromRest('${m.id}')">탈퇴</button></div></div>`});h+='</div>';}
   document.getElementById('tab-resting').innerHTML=h;
 }
 
@@ -446,6 +453,8 @@ function nextMonth(){if(viewMonth===11){viewMonth=0;viewYear++}else viewMonth++;
 
 // ═══ ATTENDANCE (4-state) ═══
 function cycleAtt(mid,sid,evt){
+  // Close any open popup first
+  document.getElementById('reasonPopup').classList.remove('open');reasonTarget=null;
   if(!S.attendance)S.attendance={};if(!S.reasons)S.reasons={};
   const key=mid+'_'+sid,cur=S.attendance[key];
   if(cur===undefined||cur===null){
@@ -498,7 +507,7 @@ function mfHtml(m){
   return`<div class="field"><label>이름 *</label><input id="mName" value="${esc(m.name||'')}" placeholder="이름"></div>
     <div class="field"><label>구분</label><select id="mRole"><option value="member" ${m.role!=='exec'?'selected':''}>회원</option><option value="exec" ${m.role==='exec'?'selected':''}>임원</option></select></div>
     <div class="field-row"><div class="field"><label>등번호</label><input id="mNumber" value="${esc(m.number||'')}" placeholder=""></div><div class="field"><label>전화번호</label><input id="mPhone" value="${esc(m.phone||'')}" placeholder="010-0000-0000"></div></div>
-    <div class="field"><label>가입일자</label><input id="mJoin" value="${esc(m.joinDate||'')}" placeholder="예: 2025-03-01"></div>
+    <div class="field"><label>가입일자</label><input id="mJoin" value="${esc(m.joinDate||'')}" placeholder="예: 2025.03.01"></div>
     <div class="field"><label>가입 경로</label><select id="mRouteSelect" onchange="document.getElementById('mRouteCustomWrap').style.display=this.value==='직접입력'?'block':'none'"><option value="">선택안함</option>${ROUTES.map(r=>`<option value="${r}" ${sel===r?'selected':''}>${r}</option>`).join('')}</select></div>
     <div class="field" id="mRouteCustomWrap" style="display:${isCR||sel==='직접입력'?'block':'none'}"><label>경로 직접 입력</label><input id="mRouteCustom" value="${isCR?esc(rv):''}" placeholder="가입 경로 입력"></div>
     <div class="field"><label>기타 메모</label><textarea id="mMemo" placeholder="메모 입력 (사는지역, 운동경험 여부, 참고사항 등)">${esc(m.memo||'')}</textarea></div>
@@ -517,7 +526,7 @@ function saveMember(){
 
 // ═══ REST ═══
 function openRestProcess(id){restTargetId=id;const m=(S.members||[]).find(x=>x.id===id);if(!m)return;document.getElementById('restModalTitle').textContent=esc(m.name)+' 휴식 처리';document.getElementById('restForm').innerHTML=`<div class="field"><label>희망 휴식 기간</label><input id="rPeriod" placeholder="예: 2025년 4월~5월, 1개월 등"></div><div class="field"><label>사유</label><textarea id="rReason" placeholder="휴식 사유를 입력하세요"></textarea></div><div class="field"><label>진행 현황</label><select id="rStatus">${REST_STATUS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button class="btn btn-secondary" onclick="closeModal('restModal')">취소</button><button class="btn btn-primary" onclick="confirmRest()">휴식 처리</button></div>`;openModal('restModal')}
-function confirmRest(){const m=(S.members||[]).find(x=>x.id===restTargetId);if(!m)return;S.members=S.members.filter(x=>x.id!==restTargetId);if(!S.resting)S.resting=[];S.resting.push({...m,restPeriod:document.getElementById('rPeriod').value.trim(),restReason:document.getElementById('rReason').value.trim(),restStatus:document.getElementById('rStatus').value,restDate:new Date().toISOString().slice(0,10)});saveData();closeModal('restModal');render()}
+function confirmRest(){const m=(S.members||[]).find(x=>x.id===restTargetId);if(!m)return;S.members=S.members.filter(x=>x.id!==restTargetId);if(!S.resting)S.resting=[];S.resting.push({...m,restPeriod:document.getElementById('rPeriod').value.trim(),restReason:document.getElementById('rReason').value.trim(),restStatus:document.getElementById('rStatus').value,restDate:todayDot()});saveData();closeModal('restModal');render()}
 function editRestInfo(id){restTargetId=id;const m=(S.resting||[]).find(x=>x.id===id);if(!m)return;document.getElementById('restModalTitle').textContent=esc(m.name)+' 휴식 정보 수정';document.getElementById('restForm').innerHTML=`<div class="field"><label>희망 휴식 기간</label><input id="rPeriod" value="${esc(m.restPeriod||'')}"></div><div class="field"><label>사유</label><textarea id="rReason">${esc(m.restReason||'')}</textarea></div><div class="field"><label>진행 현황</label><select id="rStatus">${REST_STATUS.map(s=>`<option value="${s}" ${m.restStatus===s?'selected':''}>${s}</option>`).join('')}</select></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button class="btn btn-secondary" onclick="closeModal('restModal')">취소</button><button class="btn btn-primary" onclick="updateRest()">저장</button></div>`;openModal('restModal')}
 function updateRest(){S.resting=(S.resting||[]).map(m=>m.id===restTargetId?{...m,restPeriod:document.getElementById('rPeriod').value.trim(),restReason:document.getElementById('rReason').value.trim(),restStatus:document.getElementById('rStatus').value}:m);saveData();closeModal('restModal');render()}
 function restoreFromRest(id){const m=(S.resting||[]).find(x=>x.id===id);if(!m||!confirm(m.name+' 회원을 복귀시키겠습니까?'))return;S.resting=S.resting.filter(x=>x.id!==id);const{restPeriod,restReason,restStatus,restDate,...base}=m;if(!S.members)S.members=[];S.members.push(base);saveData();render()}
@@ -525,7 +534,7 @@ function openRetireFromRest(id){retireTargetId=id;showRetireForm((S.resting||[])
 
 // ═══ RETIRE ═══
 function openRetireProcess(id){retireTargetId=id;showRetireForm((S.members||[]).find(x=>x.id===id),'members')}
-function showRetireForm(m,from){if(!m)return;document.getElementById('retireForm').innerHTML=`<p style="margin-bottom:16px;color:var(--text2)"><strong>${esc(m.name)}</strong> 회원을 탈퇴 처리합니다.</p><div class="field"><label>탈퇴일시</label><input id="rtDate" value="${new Date().toISOString().slice(0,10)}" placeholder="예: 2025-04-01"></div><div class="field"><label>탈퇴 사유</label><textarea id="rtReason" placeholder="탈퇴 사유를 입력하세요"></textarea></div><div class="field"><label>추가 메모사항</label><textarea id="rtMemo" placeholder="추가 메모사항"></textarea></div><input type="hidden" id="rtFrom" value="${from}"><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button class="btn btn-secondary" onclick="closeModal('retireModal')">취소</button><button class="btn btn-danger" onclick="confirmRetire()">탈퇴 처리</button></div>`;openModal('retireModal')}
+function showRetireForm(m,from){if(!m)return;document.getElementById('retireForm').innerHTML=`<p style="margin-bottom:16px;color:var(--text2)"><strong>${esc(m.name)}</strong> 회원을 탈퇴 처리합니다.</p><div class="field"><label>탈퇴일시</label><input id="rtDate" value="${todayDot()}" placeholder="예: 2025.04.01"></div><div class="field"><label>탈퇴 사유</label><textarea id="rtReason" placeholder="탈퇴 사유를 입력하세요"></textarea></div><div class="field"><label>추가 메모사항</label><textarea id="rtMemo" placeholder="추가 메모사항"></textarea></div><input type="hidden" id="rtFrom" value="${from}"><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button class="btn btn-secondary" onclick="closeModal('retireModal')">취소</button><button class="btn btn-danger" onclick="confirmRetire()">탈퇴 처리</button></div>`;openModal('retireModal')}
 function confirmRetire(){const from=document.getElementById('rtFrom').value;let m;if(from==='members'){m=(S.members||[]).find(x=>x.id===retireTargetId);S.members=(S.members||[]).filter(x=>x.id!==retireTargetId)}else{m=(S.resting||[]).find(x=>x.id===retireTargetId);S.resting=(S.resting||[]).filter(x=>x.id!==retireTargetId);if(m){const{restPeriod,restReason,restStatus,restDate,...base}=m;m=base}}if(!m)return;if(!S.retired)S.retired=[];S.retired.push({...m,retiredDate:document.getElementById('rtDate').value.trim(),retireReason:document.getElementById('rtReason').value.trim(),retireMemo:document.getElementById('rtMemo').value.trim()});saveData();closeModal('retireModal');render()}
 function restoreRetired(id){const m=(S.retired||[]).find(x=>x.id===id);if(!m||!confirm(m.name+' 회원을 복귀시키겠습니까?'))return;S.retired=S.retired.filter(x=>x.id!==id);const{retiredDate,retireReason,retireMemo,...base}=m;if(!S.members)S.members=[];S.members.push(base);saveData();render()}
 function deleteRetired(id){const m=(S.retired||[]).find(x=>x.id===id);if(!m||!confirm(m.name+' 회원을 완전 삭제하시겠습니까?'))return;S.retired=S.retired.filter(x=>x.id!==id);saveData();render()}
@@ -538,7 +547,7 @@ function trialFormHtml(m){
   const rv=m.route||'',isCR=rv&&!ROUTES.slice(0,3).includes(rv),sel=isCR?'직접입력':rv||'';
   return`<div class="field"><label>이름 *</label><input id="mName" value="${esc(m.name||'')}" placeholder="이름"></div>
     <div class="field-row"><div class="field"><label>등번호</label><input id="mNumber" value="${esc(m.number||'')}" placeholder=""></div><div class="field"><label>전화번호</label><input id="mPhone" value="${esc(m.phone||'')}" placeholder="010-0000-0000"></div></div>
-    <div class="field"><label>체험일자</label><input id="mJoin" value="${esc(m.joinDate||'')}" placeholder="예: 2025-04-01"></div>
+    <div class="field"><label>체험일자</label><input id="mJoin" value="${esc(m.joinDate||'')}" placeholder="예: 2025.04.01"></div>
     <div class="field"><label>가입 경로</label><select id="mRouteSelect" onchange="document.getElementById('mRouteCustomWrap').style.display=this.value==='직접입력'?'block':'none'"><option value="">선택안함</option>${ROUTES.map(r=>`<option value="${r}" ${sel===r?'selected':''}>${r}</option>`).join('')}</select></div>
     <div class="field" id="mRouteCustomWrap" style="display:${isCR||sel==='직접입력'?'block':'none'}"><label>경로 직접 입력</label><input id="mRouteCustom" value="${isCR?esc(rv):''}" placeholder="가입 경로 입력"></div>
     <div class="field"><label>기타 메모</label><textarea id="mMemo" placeholder="메모 입력 (사는지역, 운동경험 여부, 참고사항 등)">${esc(m.memo||'')}</textarea></div>
@@ -568,7 +577,7 @@ function openJoinTrial(id){
   document.getElementById('memberModalTitle').textContent=esc(m.name)+' 가입 처리';
   document.getElementById('memberForm').innerHTML=`
     <p style="margin-bottom:16px;color:var(--text2)"><strong>${esc(m.name)}</strong> 체험회원을 정식 회원으로 등록합니다.</p>
-    <div class="field"><label>활동 시작일</label><input id="joinStartDate" value="${new Date().toISOString().slice(0,10)}" placeholder="예: 2025-04-01"></div>
+    <div class="field"><label>활동 시작일</label><input id="joinStartDate" value="${todayDot()}" placeholder="예: 2025.04.01"></div>
     <div class="field"><label>등번호</label><input id="joinNumber" value="${esc(m.number||'')}" placeholder="등번호"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
       <button class="btn btn-secondary" onclick="closeModal('memberModal')">취소</button>
