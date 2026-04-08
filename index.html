@@ -246,9 +246,9 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('cl
 
 // ═══ HELPERS ═══
 function getMS(){return(S.sessions||[]).filter(s=>{const d=new Date(s.date);return d.getFullYear()===viewYear&&d.getMonth()===viewMonth}).sort((a,b)=>a.date.localeCompare(b.date))}
-function sessStats(sid){let p=0;(S.members||[]).forEach(m=>{if(S.attendance&&S.attendance[m.id+'_'+sid]===true)p++});return{present:p,total:(S.members||[]).length}}
-function memMonthRate(mid,ms){if(!ms.length)return{a:0,t:0,r:0};let a=0;ms.forEach(s=>{if(S.attendance&&S.attendance[mid+'_'+s.id]===true)a++});return{a,t:ms.length,r:Math.round(a/ms.length*100)}}
-function teamRate(ms){const mem=S.members||[];if(!ms.length||!mem.length)return 0;let t=0;mem.forEach(m=>ms.forEach(s=>{if(S.attendance&&S.attendance[m.id+'_'+s.id]===true)t++}));return Math.round(t/(ms.length*mem.length)*100)}
+function sessStats(sid){let p=0;(S.members||[]).forEach(m=>{const v=S.attendance&&S.attendance[m.id+'_'+sid];if(v===true||v==='trial_att')p++});return{present:p,total:(S.members||[]).length}}
+function memMonthRate(mid,ms){if(!ms.length)return{a:0,t:0,r:0};let a=0;ms.forEach(s=>{const v=S.attendance&&S.attendance[mid+'_'+s.id];if(v===true||v==='trial_att')a++});return{a,t:ms.length,r:Math.round(a/ms.length*100)}}
+function teamRate(ms){const mem=S.members||[];if(!ms.length||!mem.length)return 0;let t=0;mem.forEach(m=>ms.forEach(s=>{const v=S.attendance&&S.attendance[m.id+'_'+s.id];if(v===true||v==='trial_att')t++}));return Math.round(t/(ms.length*mem.length)*100)}
 function rb(rate,txt){const c=rate>=70?'rate-high':rate>=40?'rate-mid':'rate-low';return`<span class="rate-badge ${c}">${txt}</span>`}
 function hasWarning(mid,ms){
   if(!ms.length)return false;
@@ -583,7 +583,7 @@ function deleteTrial(id){const m=(S.trial||[]).find(x=>x.id===id);if(!m||!confir
 function openDetail(id){
   const m=(S.members||[]).find(x=>x.id===id);if(!m)return;
   const allS=[...(S.sessions||[])].sort((a,b)=>a.date.localeCompare(b.date));
-  const att=allS.filter(s=>S.attendance&&S.attendance[m.id+'_'+s.id]===true).length,tot=allS.length;
+  const att=allS.filter(s=>{const v=S.attendance&&S.attendance[m.id+'_'+s.id];return v===true||v==='trial_att'}).length,tot=allS.length;
   const rate=tot?Math.round(att/tot*100):0,crown=m.role==='exec'?'👑 ':'',rl=m.role==='exec'?'임원':'회원';
   document.getElementById('detailContent').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"><div class="stat-card"><div class="stat-label">이름</div><div style="font-weight:700;color:var(--text)">${crown}${esc(m.name)}</div></div><div class="stat-card"><div class="stat-label">구분</div><div style="font-weight:700;color:var(--text)">${rl}</div></div><div class="stat-card"><div class="stat-label">등번호</div><div style="font-weight:700;color:var(--text)">${esc(m.number)||'-'}</div></div><div class="stat-card"><div class="stat-label">전화번호</div><div style="font-weight:700;color:var(--text)">${esc(m.phone)||'-'}</div></div><div class="stat-card"><div class="stat-label">가입일</div><div style="font-weight:700;color:var(--text)">${esc(m.joinDate)||'-'}</div></div><div class="stat-card"><div class="stat-label">가입 경로</div><div style="font-weight:700;color:var(--text)">${esc(m.route)||'-'}</div></div></div><div style="background:var(--accent-light);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;color:var(--text2)">전체 출석률</span><span style="font-size:20px;font-weight:800;color:var(--accent)">${rate}% (${att}/${tot})</span></div>${m.memo?'<div class="stat-card" style="margin-bottom:16px"><div class="stat-label">메모</div><div style="color:var(--text2)">'+esc(m.memo)+'</div></div>':''}<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-secondary" onclick="closeModal('detailModal');openEditMember('${m.id}')">수정</button><button class="btn btn-warning" onclick="closeModal('detailModal');openRestProcess('${m.id}')">휴식</button><button class="btn btn-danger" onclick="closeModal('detailModal');openRetireProcess('${m.id}')">탈퇴</button></div>`;
   openModal('detailModal');
