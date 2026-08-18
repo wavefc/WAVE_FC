@@ -74,6 +74,10 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .name-cell{text-align:left!important;font-weight:600;cursor:pointer;white-space:nowrap;color:var(--text)}.name-cell:hover{color:var(--accent)}
 .session-header{cursor:pointer;min-width:76px}
 .session-date{font-size:12px;font-weight:700;color:var(--text)}.session-venue{font-size:10px;color:var(--text3);margin-top:1px}.session-count{font-size:10px;color:var(--accent);margin-top:2px;font-weight:700}
+.session-rate{font-size:11px;font-weight:800;margin-top:2px}
+.session-rate.r-hi{color:var(--green)}.session-rate.r-mid{color:#d97706}.session-rate.r-low{color:var(--red)}
+.session-rate.is-future{color:var(--text3);font-weight:700}
+.sort-sel{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:12px;font-weight:700;cursor:pointer;outline:none}
 /* 4-state attendance buttons */
 .att-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);font-size:15px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;justify-content:center}
 .att-btn.present{background:var(--green-bg);border-color:var(--green);color:var(--green)}
@@ -104,7 +108,7 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .warning-badge{display:inline-flex;align-items:center;gap:2px;font-size:11px;font-weight:700;color:#b45309;background:rgba(245,158,11,.18);padding:2px 8px;border-radius:10px;margin-left:6px}
 [data-theme="dark"] .warning-badge{color:#fbbf24;background:rgba(251,191,36,.15)}
 /* Hide reasons mode */
-.hide-reasons .reason-label,.hide-reasons .unauth-label,.hide-reasons .note-label,.hide-reasons .trial-label{display:none!important}
+.hide-reasons .reason-label,.hide-reasons .unauth-label,.hide-reasons .note-label,.hide-reasons .trial-label,.hide-reasons .memo-line,.hide-reasons .injury-label,.hide-reasons .personal-label,.hide-reasons .rest-label{display:none!important}
 .rate-badge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}
 .rate-high{background:var(--green-bg);color:var(--green)}.rate-mid{background:var(--yellow-bg);color:var(--yellow)}.rate-low{background:var(--red-bg);color:var(--red)}
 .member-list{display:grid;gap:8px}
@@ -168,6 +172,7 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .personal-label{font-size:11px;color:#0284c7;margin-top:3px;font-weight:700;text-align:center;max-width:80px;line-height:1.3;word-break:keep-all}
 .rest-label{font-size:11px;color:var(--text3);margin-top:3px;font-weight:700;text-align:center}
 .memo-line{font-size:10px;color:var(--text3);margin-top:2px;text-align:center;max-width:82px;line-height:1.25;word-break:keep-all}
+.att-pre{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;color:var(--border);font-size:14px;font-weight:700}
 .empty-state{text-align:center;padding:50px 20px;color:var(--text3)}.empty-state .icon{font-size:40px;margin-bottom:10px}.empty-state p{margin-bottom:14px}
 .rest-detail{background:var(--bg);border-radius:8px;padding:8px 12px;margin-top:4px;font-size:12px;color:var(--text2)}
 .rest-badge{background:var(--orange-bg);color:var(--orange);padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600}
@@ -178,6 +183,18 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .dues-btn{padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;border:1.5px solid var(--border);cursor:pointer;transition:.2s}
 .dues-btn.paid{background:var(--green-bg);border-color:var(--green);color:var(--green)}
 .dues-btn.unpaid{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.dues-btn.d-paid{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.dues-btn.d-trial{background:rgba(139,92,246,.12);border-color:#7c3aed;color:#7c3aed}
+.dues-btn.d-unpaid{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.dues-btn.d-carry{background:rgba(217,119,6,.12);border-color:#d97706;color:#d97706}
+.dues-btn.d-rest{background:var(--bg3);border-color:var(--border);color:var(--text3)}
+.dues-btn.d-none{background:var(--bg);border-color:var(--border);color:var(--text3)}
+.pick-opt.d-paid{color:var(--green);border-color:rgba(22,163,74,.45)}
+.pick-opt.d-trial{color:#7c3aed;border-color:rgba(139,92,246,.45)}
+.pick-opt.d-unpaid{color:var(--red);border-color:rgba(225,29,72,.45)}
+.pick-opt.d-carry{color:#d97706;border-color:rgba(217,119,6,.45)}
+.pick-opt.d-rest{color:var(--text3)}
+.hide-dues-memo .dues-memo{display:none!important}
 .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s}
 .loading-screen.hidden{opacity:0;pointer-events:none}
 .loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px}
@@ -202,12 +219,14 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
   <div id="tab-retired" class="tab-content fade-in" style="display:none"></div>
   <div id="tab-trial" class="tab-content fade-in" style="display:none"></div>
   <div id="tab-all" class="tab-content fade-in" style="display:none"></div>
+  <div id="tab-dues" class="tab-content fade-in" style="display:none"></div>
 </div>
 <div class="modal-overlay" id="memberModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3 id="memberModalTitle">회원 추가</h3><button class="modal-close" onclick="closeModal('memberModal')">✕</button></div><div id="memberForm"></div></div></div>
 <div class="modal-overlay" id="sessionModal"><div class="modal" onclick="event.stopPropagation()" style="width:520px"><div class="modal-title"><h3 id="sessionModalTitle">일정 추가</h3><button class="modal-close" onclick="closeModal('sessionModal')">✕</button></div><div id="sessionForm"></div></div></div>
 <div class="modal-overlay" id="detailModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3>회원 상세 정보</h3><button class="modal-close" onclick="closeModal('detailModal')">✕</button></div><div id="detailContent"></div></div></div>
 <div class="modal-overlay" id="restModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3 id="restModalTitle">휴식 처리</h3><button class="modal-close" onclick="closeModal('restModal')">✕</button></div><div id="restForm"></div></div></div>
 <div class="modal-overlay" id="retireModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3>탈퇴 처리</h3><button class="modal-close" onclick="closeModal('retireModal')">✕</button></div><div id="retireForm"></div></div></div>
+<div class="modal-overlay" id="duesModal"><div class="modal" onclick="event.stopPropagation()" style="width:300px"><div class="modal-title"><h3 id="duesModalTitle">회비</h3><button class="modal-close" onclick="closeModal('duesModal')">✕</button></div><div id="duesForm"></div></div></div>
 <div class="reason-popup" id="reasonPopup">
   <div id="attPickPane">
     <div class="pick-title" id="pickTitle">이름</div>
@@ -256,6 +275,18 @@ let editingMemberId=null,editingSessionId=null,reasonTarget=null;
 let selectedDates=[],venuePerDate={},calYear,calMonth;
 let restTargetId=null,retireTargetId=null,saving=false;
 let hideReasons=false;
+let attSort='name';
+// 출석표 정렬: 이름 / 가입일 / 등번호 / 출석률
+function attSortList(list,ms){
+  const arr=[...list];
+  if(attSort==='join')      arr.sort((a,b)=>(dnum(a.joinDate)||99999999)-(dnum(b.joinDate)||99999999)||korSort(a,b));
+  else if(attSort==='num')  arr.sort((a,b)=>{const x=parseInt(a.number,10),y=parseInt(b.number,10);
+                                 const ax=isNaN(x)?99999:x, by=isNaN(y)?99999:y;
+                                 return ax-by||korSort(a,b)});
+  else if(attSort==='rate') arr.sort((a,b)=>memMonthRate(b.id,ms).r-memMonthRate(a.id,ms).r||korSort(a,b));
+  else                      arr.sort(korSort);
+  return arr;
+}
 let showAllMembers=false;
 
 // ═══ FIREBASE ═══
@@ -274,7 +305,7 @@ function toggleTheme(){const dk=document.documentElement.getAttribute('data-them
 (function(){try{if(localStorage.getItem('wavefc_theme')==='dark'){document.documentElement.setAttribute('data-theme','dark');document.querySelector('.theme-toggle').textContent='☀️'}}catch(e){}})();
 
 // ═══ TABS ═══
-const TABS=[{key:'attendance',label:'📋 출석체크'},{key:'active',label:'⚽ 활동회원'},{key:'resting',label:'😴 휴식회원'},{key:'retired',label:'📁 탈퇴회원'},{key:'trial',label:'🌟 체험회원'},{key:'all',label:'👥 회원관리'}];
+const TABS=[{key:'attendance',label:'📋 출석체크'},{key:'active',label:'⚽ 활동회원'},{key:'resting',label:'😴 휴식회원'},{key:'retired',label:'📁 탈퇴회원'},{key:'trial',label:'🌟 체험회원'},{key:'all',label:'👥 회원관리'},{key:'dues',label:'💰 회비관리'}];
 function renderTabs(){document.getElementById('tabBar').innerHTML=TABS.map(t=>`<button class="tab-btn ${currentTab===t.key?'active':''}" onclick="switchTab('${t.key}')">${t.label}</button>`).join('')}
 function switchTab(t){currentTab=t;TABS.forEach(x=>{const el=document.getElementById('tab-'+x.key);if(el)el.style.display=x.key===t?'':'none'});renderTabs();render()}
 function openModal(id){document.getElementById(id).classList.add('open')}
@@ -299,8 +330,45 @@ const ATT_STATES=[
 ];
 function attState(v){return ATT_STATES.find(s=>s.v===v)||null}
 function attCounts(v){const s=ATT_STATES.find(x=>x.v===v);return!!(s&&s.count)}
-function memMonthRate(mid,ms){if(!ms.length)return{a:0,t:0,r:0};let a=0;ms.forEach(s=>{if(attCounts(S.attendance&&S.attendance[mid+'_'+s.id]))a++});return{a,t:ms.length,r:Math.round(a/ms.length*100)}}
-function teamRate(ms){const mem=S.members||[];if(!ms.length||!mem.length)return 0;let t=0;mem.forEach(m=>ms.forEach(s=>{if(attCounts(S.attendance&&S.attendance[m.id+'_'+s.id]))t++}));return Math.round(t/(ms.length*mem.length)*100)}
+// "2026.04.08" "2026. 07. 14" "2026-8-11" 등 → 20260408 형태 숫자
+function dnum(d){
+  const p=String(d||'').match(/\d+/g);
+  if(!p||p.length<3)return 0;
+  return parseInt(p[0],10)*10000+parseInt(p[1],10)*100+parseInt(p[2],10);
+}
+// 가입일 이전 일정은 애초에 참석할 수 없으므로 출석률 분모에서 제외
+function eligSessions(m,ms){
+  const j=dnum(m&&m.joinDate);
+  if(!j)return ms;
+  return ms.filter(s=>dnum(s.date)>=j);
+}
+function memMonthRate(mid,ms){
+  const all=[...(S.members||[]),...(S.resting||[]),...(S.retired||[]),...(S.trial||[])];
+  const m=all.find(x=>x.id===mid);
+  // 가입 전 일정 + 아직 열리지 않은 일정은 분모에서 제외
+  const el=eligSessions(m,(ms||[]).filter(s=>dnum(s.date)<=todayNum()));
+  if(!el.length)return{a:0,t:0,r:0};
+  let a=0;el.forEach(s=>{if(attCounts(S.attendance&&S.attendance[mid+'_'+s.id]))a++});
+  return{a,t:el.length,r:Math.round(a/el.length*100)};
+}
+function todayNum(){const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()}
+// 아직 오지 않은 일정은 팀 출석률에서 제외 (미참으로 잡히는 것 방지)
+function teamRate(ms){
+  const mem=S.members||[];
+  const past=(ms||[]).filter(s=>dnum(s.date)<=todayNum());
+  if(!past.length||!mem.length)return 0;
+  let t=0,tot=0;
+  mem.forEach(m=>{const el=eligSessions(m,past);tot+=el.length;el.forEach(s=>{if(attCounts(S.attendance&&S.attendance[m.id+'_'+s.id]))t++})});
+  return tot?Math.round(t/tot*100):0;
+}
+// 그날 하루의 출석률(%) — 가입 전 회원은 분모에서 제외
+function sessRate(sid){
+  const s=(S.sessions||[]).find(x=>x.id===sid);if(!s)return null;
+  const mem=(S.members||[]).filter(m=>{const j=dnum(m.joinDate);return!j||dnum(s.date)>=j});
+  if(!mem.length)return null;
+  let p=0;mem.forEach(m=>{if(attCounts(S.attendance&&S.attendance[m.id+'_'+sid]))p++});
+  return Math.round(p/mem.length*100);
+}
 function rb(rate,txt){const c=rate>=70?'rate-high':rate>=40?'rate-mid':'rate-low';return`<span class="rate-badge ${c}">${txt}</span>`}
 function hasWarning(mid,ms){
   if(!ms.length)return false;
@@ -320,10 +388,12 @@ function render(){
   else if(currentTab==='retired')renderRet();
   else if(currentTab==='trial')renderTrial();
   else if(currentTab==='all')renderAll();
+  else if(currentTab==='dues')renderDues();
 }
 
-function renderAtt(){
-  const ms=getMS(),tr=teamRate(ms);
+// 출석표에 표시할 회원 목록 (renderAtt / exportAtt 공용)
+function currentAttList(){
+  const ms=getMS();
   // Build member list: active + trial always, resting/retired if they have data or showAll
   let allList=[...(S.members||[])];
   (S.trial||[]).forEach(m=>{allList.push({...m,_status:'체험'})});
@@ -351,29 +421,40 @@ function renderAtt(){
     if(m._status==='휴식'){const rd=pd(m.restStartDate||m.restDate);if(rd && rd<viewStart) return false}
     return true;
   });
-  const sorted=allList.sort(korSort);
+  return allList;
+}
+function renderAtt(){
+  const ms=getMS(),tr=teamRate(ms);
+  const sorted=attSortList(currentAttList(),ms);
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
     <div style="display:flex;align-items:center;gap:8px">
       <button class="btn btn-ghost" onclick="prevMonth()">◀</button>
       <span style="font-size:18px;font-weight:800;min-width:130px;text-align:center;color:var(--text)">${viewYear}년 ${viewMonth+1}월</span>
       <button class="btn btn-ghost" onclick="nextMonth()">▶</button>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <select class="sort-sel" onchange="attSort=this.value;render()">
+        <option value="name"${attSort==='name'?' selected':''}>가나다순</option>
+        <option value="join"${attSort==='join'?' selected':''}>가입일순</option>
+        <option value="num"${attSort==='num'?' selected':''}>등번호순</option>
+        <option value="rate"${attSort==='rate'?' selected':''}>출석률순</option>
+      </select>
       <button class="btn btn-sm ${showAllMembers?'btn-primary':'btn-secondary'}" onclick="showAllMembers=!showAllMembers;render()">${showAllMembers?'⚽ 활동만 보기':'👥 전체 보기'}</button>
       <button class="btn btn-sm ${hideReasons?'btn-primary':'btn-secondary'}" onclick="hideReasons=!hideReasons;render()">${hideReasons?'👁 사유 보이기':'🙈 사유 숨기기'}</button>
+      ${xbtn('exportAtt()')}
       <button class="btn btn-primary btn-sm" onclick="openAddSessions()">+ 일정 추가</button>
     </div>
   </div>
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-label">이번 달 일정</div><div class="stat-value blue">${ms.length}회</div></div>
     <div class="stat-card"><div class="stat-label">활동 회원</div><div class="stat-value blue">${(S.members||[]).length}명</div></div>
-    <div class="stat-card"><div class="stat-label">팀 출석률</div><div class="stat-value ${tr>=70?'green':tr>=40?'yellow':''}">${tr}%</div></div>
+    <div class="stat-card"><div class="stat-label">팀 출석률 <span style="font-size:10px;color:var(--text3);font-weight:600">(오늘까지 ${(ms||[]).filter(s=>dnum(s.date)<=todayNum()).length}회)</span></div><div class="stat-value ${tr>=70?'green':tr>=40?'yellow':''}">${tr}%</div></div>
   </div>`;
   if(!ms.length){h+=`<div class="empty-state"><div class="icon">📅</div><p>이번 달 일정이 없습니다</p><button class="btn btn-primary" onclick="openAddSessions()">일정 추가하기</button></div>`}
   else if(!sorted.length){h+=`<div class="empty-state"><div class="icon">👥</div><p>등록된 회원이 없습니다</p><button class="btn btn-primary" onclick="switchTab('all');setTimeout(openAddMember,100)">회원 추가하기</button></div>`}
   else{
     h+=`<div class="table-wrap${hideReasons?' hide-reasons':''}"><table><thead><tr><th>번호</th><th style="text-align:left">이름</th><th>가입일</th><th>등번호</th>`;
-    ms.forEach(s=>{const st=sessStats(s.id);h+=`<th class="session-header" onclick="openEditSession('${s.id}')"><div class="session-date">${fmtDate(s.date)}</div><div class="session-venue">${esc(s.venue)}</div><div class="session-count">${st.present}/${st.total}</div></th>`});
+    ms.forEach(s=>{const st=sessStats(s.id),sr=sessRate(s.id),fut=dnum(s.date)>todayNum();h+=`<th class="session-header" onclick="openEditSession('${s.id}')"><div class="session-date">${fmtDate(s.date)}</div><div class="session-venue">${esc(s.venue)}</div><div class="session-count">${st.present}/${st.total}</div><div class="session-rate ${fut?'is-future':sr>=70?'r-hi':sr>=40?'r-mid':'r-low'}">${fut?'예정':(sr===null?'-':sr+'%')}</div></th>`});
     h+=`<th>출석률</th></tr></thead><tbody>`;
     sorted.forEach((m,i)=>{
       const r=memMonthRate(m.id,ms),crown=m.role==='exec'?'👑 ':'',warn=hasWarning(m.id,ms);
@@ -381,6 +462,8 @@ function renderAtt(){
       h+=`<tr${m._status?' style="opacity:.6"':''}><td>${i+1}</td><td class="name-cell" ${!m._status?`onclick="openDetail('${m.id}')"`:''}>${crown}${esc(m.name)}${statusTag}${warn?'<span class="warning-badge">🟨 경고</span>':''}</td><td style="font-size:12px;color:var(--text3)">${esc(m.joinDate)}</td><td>${esc(m.number)||'-'}</td>`;
       ms.forEach(s=>{
         const key=m.id+'_'+s.id,val=(S.attendance||{})[key],reason=(S.reasons||{})[key];
+        const jn=dnum(m.joinDate), pre=(jn&&dnum(s.date)<jn);
+        if(pre){h+=`<td><div class="att-cell"><span class="att-pre" title="가입 전 일정">–</span></div></td>`;return}
         const st=(val===false)?attState('absent'):attState(val);
         const cls=st?st.cls:'none', icon=st?st.icon:'·';
         h+=`<td><div class="att-cell"><button class="att-btn ${cls}" onclick="cycleAtt('${m.id}','${s.id}',event)">${icon}</button>`;
@@ -405,20 +488,20 @@ function renderActive(){
   const ym=viewYear+'-'+String(viewMonth+1).padStart(2,'0');
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
     <h2 style="font-size:17px;font-weight:700;color:var(--text)">활동 회원 (${(S.members||[]).length}명)</h2>
-    <button class="btn btn-primary" onclick="openAddMember()">+ 회원 추가</button></div>`;
+    <div style="display:flex;gap:8px">${xbtn('exportActive()')}<button class="btn btn-primary" onclick="openAddMember()">+ 회원 추가</button></div></div>`;
   if(!sorted.length){h+='<div class="empty-state"><div class="icon">🙋</div><p>등록된 활동 회원이 없습니다</p></div>'}
   else{
     h+='<div class="member-list">';
     sorted.forEach((m,i)=>{
       const crown=m.role==='exec'?'👑 ':'',rl=m.role==='exec'?'임원':'회원';
       const duesKey=m.id+'_'+ym;
-      const paid=S.dues&&S.dues[duesKey];
+      const DL=duesLabel(m.id,ym);
       h+=`<div class="member-card"><div class="member-info"><div class="member-avatar">${esc(m.number)||(i+1)}</div><div>
         <div class="member-name">${crown}${esc(m.name)} <span style="font-size:11px;color:var(--accent);font-weight:600;background:var(--accent-light);padding:1px 7px;border-radius:10px">${rl}</span></div>
         <div class="member-sub">가입: ${esc(m.joinDate)||'-'}${m.phone?' · '+esc(m.phone):''}${m.route?' · 경로: '+esc(m.route):''}</div>
       </div></div>
       <div class="member-actions">
-        <button class="dues-btn ${paid?'paid':'unpaid'}" onclick="toggleDues('${m.id}','${ym}')">${paid?'✓ 납입':'✗ 미납'}</button>
+        <button class="dues-btn ${DL.cls}" title="${ym} 회비" onclick="openDuesPicker('${m.id}','${ym}')">${esc(DL.txt)}</button>
         <button class="btn btn-secondary btn-sm" onclick="openEditMember('${m.id}')">수정</button>
         <button class="btn btn-warning btn-sm" onclick="openRestProcess('${m.id}')">휴식</button>
         <button class="btn btn-danger btn-sm" onclick="openRetireProcess('${m.id}')">탈퇴</button>
@@ -431,7 +514,7 @@ function renderActive(){
 
 function renderRest(){
   const sorted=[...(S.resting||[])].sort(korSort);
-  let h=`<h2 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px">휴식 회원 (${(S.resting||[]).length}명)</h2>`;
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h2 style="font-size:17px;font-weight:700;color:var(--text)">휴식 회원 (${(S.resting||[]).length}명)</h2>${xbtn('exportRest()')}</div>`;
   if(!sorted.length){h+='<div class="empty-state"><div class="icon">😴</div><p>휴식 중인 회원이 없습니다</p></div>'}
   else{h+='<div class="member-list">';sorted.forEach(m=>{
     const crown=m.role==='exec'?'👑 ':'';
@@ -457,7 +540,7 @@ function renderRest(){
 
 function renderRet(){
   const sorted=[...(S.retired||[])].sort(korSort);
-  let h=`<h2 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px">탈퇴 회원 (${(S.retired||[]).length}명)</h2>`;
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h2 style="font-size:17px;font-weight:700;color:var(--text)">탈퇴 회원 (${(S.retired||[]).length}명)</h2>${xbtn('exportRetired()')}</div>`;
   if(!sorted.length){h+='<div class="empty-state" style="padding:30px 20px"><div class="icon">✅</div><p>탈퇴한 회원이 없습니다</p></div>'}
   else{h+='<div class="member-list">';sorted.forEach(m=>{h+=`<div class="member-card" style="opacity:.8"><div style="flex:1"><div class="member-name" style="color:var(--text2)">${esc(m.name)} <span style="font-size:12px;color:var(--text3)">#${esc(m.number)||'-'}</span></div><div class="member-sub">가입: ${esc(m.joinDate)||'-'} · 탈퇴: ${esc(m.retiredDate)||'-'}${m.phone?' · '+esc(m.phone):''}</div>${m.retireReason?'<div class="rest-detail">탈퇴 사유: '+esc(m.retireReason)+'</div>':''}${m.retireMemo?'<div class="rest-detail" style="margin-top:4px">메모: '+esc(m.retireMemo)+'</div>':''}</div><div class="member-actions"><button class="btn btn-secondary btn-sm" onclick="restoreRetired('${m.id}')">복귀</button><button class="btn btn-danger btn-sm" onclick="deleteRetired('${m.id}')">삭제</button></div></div>`});h+='</div>';}
   // ── 미가입 멤버 (체험 후 정식 가입하지 않은 분) ──
@@ -486,7 +569,7 @@ function renderRet(){
 function renderAll(){
   const act=[...(S.members||[])].sort(korSort),rest=[...(S.resting||[])].sort(korSort),ret=[...(S.retired||[])].sort(korSort),tri=[...(S.trial||[])].sort(korSort),nj=[...(S.notjoined||[])].sort(korSort);
   const total=act.length+rest.length+ret.length+tri.length+nj.length;
-  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h2 style="font-size:17px;font-weight:700;color:var(--text)">전체 회원 관리 (총 ${total}명)</h2><button class="btn btn-primary" onclick="openAddMember()">+ 회원 추가</button></div>
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h2 style="font-size:17px;font-weight:700;color:var(--text)">전체 회원 관리 (총 ${total}명)</h2><div style="display:flex;gap:8px">${xbtn('exportAll()')}<button class="btn btn-primary" onclick="openAddMember()">+ 회원 추가</button></div></div>
   <div class="stats-grid" style="margin-bottom:20px">
     <div class="stat-card"><div class="stat-label">⚽ 활동</div><div class="stat-value blue">${act.length}명</div></div>
     <div class="stat-card"><div class="stat-label">😴 휴식</div><div class="stat-value" style="color:var(--orange)">${rest.length}명</div></div>
@@ -516,7 +599,7 @@ function renderTrial(){
   const sorted=[...(S.trial||[])].sort(korSort);
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
     <h2 style="font-size:17px;font-weight:700;color:var(--text)">체험 회원 (${sorted.length}명)</h2>
-    <button class="btn btn-primary" onclick="openAddTrial()">+ 체험회원 추가</button></div>`;
+    <div style="display:flex;gap:8px">${xbtn('exportTrial()')}<button class="btn btn-primary" onclick="openAddTrial()">+ 체험회원 추가</button></div></div>`;
   if(!sorted.length){h+='<div class="empty-state"><div class="icon">🌟</div><p>체험 회원이 없습니다</p></div>'}
   else{
     h+='<div class="member-list">';
@@ -619,7 +702,238 @@ function cancelReason(){document.getElementById('reasonPopup').classList.remove(
 document.addEventListener('click',e=>{const p=document.getElementById('reasonPopup');if(p.classList.contains('open')&&!p.contains(e.target)&&!e.target.classList.contains('att-btn'))cancelReason()});
 
 // ═══ DUES ═══
-function toggleDues(mid,ym){if(!S.dues)S.dues={};const k=mid+'_'+ym;S.dues[k]=!S.dues[k];saveData();render()}
+// ═══ 엑셀(CSV) 내보내기 ═══
+// 한글 깨짐 방지를 위해 UTF-8 BOM 포함. 엑셀에서 바로 열립니다.
+function csvEsc(v){return'"'+String(v==null?'':v).replace(/"/g,'""')+'"'}
+function downloadCSV(name,rows){
+  const csv='\uFEFF'+rows.map(r=>r.map(csvEsc).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},200);
+}
+function xbtn(fn){return`<button class="btn btn-sm btn-secondary" onclick="${fn}">📊 엑셀 내보내기</button>`}
+function ymStamp(){return viewYear+'-'+String(viewMonth+1).padStart(2,'0')}
+function attLabelOf(mid,sid){
+  const v=(S.attendance||{})[mid+'_'+sid];
+  if(v===undefined||v===null)return'';
+  const st=(v===false)?attState('absent'):attState(v);
+  return st?st.label.replace(/^[○×]\s*/,''):'';
+}
+// 출석표
+function exportAtt(){
+  const ms=getMS();
+  const list=attSortList(currentAttList(),ms);
+  const head=['번호','이름','구분','가입일','등번호'];
+  ms.forEach(s=>{head.push(fmtDate(s.date)+' '+(s.venue||''));head.push('메모')});
+  head.push('출석','대상','출석률(%)');
+  const rows=[head];
+  list.forEach((m,i)=>{
+    const r=memMonthRate(m.id,ms),jn=dnum(m.joinDate);
+    const row=[i+1,m.name,m._status||'활동',m.joinDate||'',m.number||''];
+    ms.forEach(s=>{
+      if(jn&&dnum(s.date)<jn){row.push('가입전','');return}
+      row.push(attLabelOf(m.id,s.id),(S.reasons||{})[m.id+'_'+s.id]||'');
+    });
+    row.push(r.a,r.t,r.r);
+    rows.push(row);
+  });
+  rows.push([]);
+  rows.push(['일자별 출석률(%)','']);
+  ms.forEach(s=>{const fut=dnum(s.date)>todayNum();rows.push([fmtDate(s.date),fut?'예정':(sessRate(s.id)===null?'-':sessRate(s.id))])});
+  rows.push(['팀 출석률(오늘까지)',teamRate(ms)]);
+  downloadCSV(`WAVE_출석표_${ymStamp()}.csv`,rows);
+}
+// 활동회원
+function exportActive(){
+  const ym=ymStamp();
+  const rows=[['번호','이름','등번호','구분','가입일','연락처','유입경로',ym+' 회비','회비 메모']];
+  [...(S.members||[])].sort(korSort).forEach((m,i)=>{
+    const d=duesGet(m.id,ym)||{},st=duesState(d.st);
+    rows.push([i+1,m.name,m.number||'',m.role==='exec'?'임원':'회원',m.joinDate||'',m.phone||'',m.route||'',st?st.label:'미체크',d.amt||d.memo||'']);
+  });
+  downloadCSV(`WAVE_활동회원_${ym}.csv`,rows);
+}
+// 휴식회원
+function exportRest(){
+  const rows=[['번호','이름','등번호','가입일','연락처','휴식 시작','복귀 예정','사유','과거 휴식 횟수']];
+  [...(S.resting||[])].sort(korSort).forEach((m,i)=>{
+    rows.push([i+1,m.name,m.number||'',m.joinDate||'',m.phone||'',m.restStartDate||'',m.restReturnDate||'',m.restReason||'',(m.restHistory||[]).length]);
+  });
+  downloadCSV(`WAVE_휴식회원_${ymStamp()}.csv`,rows);
+}
+// 탈퇴회원 + 미가입 멤버
+function exportRetired(){
+  const rows=[['구분','번호','이름','등번호','가입일','종료일','사유','메모','유입경로']];
+  [...(S.retired||[])].sort(korSort).forEach((m,i)=>{
+    rows.push(['탈퇴',i+1,m.name,m.number||'',m.joinDate||'',m.retiredDate||'',m.retireReason||'',m.retireMemo||'',m.route||'']);
+  });
+  [...(S.notjoined||[])].sort(korSort).forEach((m,i)=>{
+    rows.push(['미가입',i+1,m.name,m.number||'',m.joinDate||'',m.notJoinDate||'',m.notJoinReason||'',m.memo||'',m.route||'']);
+  });
+  downloadCSV(`WAVE_탈퇴미가입_${ymStamp()}.csv`,rows);
+}
+// 체험회원
+function exportTrial(){
+  const rows=[['번호','이름','등번호','체험 시작일','연락처','유입경로','가입 여부','메모']];
+  [...(S.trial||[])].sort(korSort).forEach((m,i)=>{
+    rows.push([i+1,m.name,m.number||'',m.joinDate||'',m.phone||'',m.route||'',m.joinStatus==='joined'?'가입':'미가입',m.memo||'']);
+  });
+  downloadCSV(`WAVE_체험회원_${ymStamp()}.csv`,rows);
+}
+// 전체 회원
+function exportAll(){
+  const rows=[['구분','이름','등번호','가입일','연락처','유입경로','비고']];
+  const add=(g,arr,note)=>[...(arr||[])].sort(korSort).forEach(m=>rows.push([g,m.name,m.number||'',m.joinDate||'',m.phone||'',m.route||'',note?note(m):'']));
+  add('활동',S.members,m=>m.role==='exec'?'임원':'');
+  add('체험',S.trial,m=>m.joinStatus==='joined'?'가입':'미가입');
+  add('휴식',S.resting,m=>(m.restStartDate||'')+' ~ '+(m.restReturnDate||'')+' '+(m.restReason||''));
+  add('탈퇴',S.retired,m=>(m.retiredDate||'')+' '+(m.retireReason||''));
+  add('미가입',S.notjoined,m=>(m.notJoinDate||'')+' '+(m.notJoinReason||''));
+  downloadCSV(`WAVE_전체회원_${ymStamp()}.csv`,rows);
+}
+// 회비
+function exportDues(){
+  const ym=ymStamp();
+  const list=[...(S.members||[]).map(m=>({...m,_grp:'활동'})),
+              ...(S.resting||[]).map(m=>({...m,_grp:'휴식'})),
+              ...(S.trial||[]).map(m=>({...m,_grp:'체험'}))].sort(korSort);
+  const rows=[['번호','이름','등번호','구분','회비 상태','금액','사유']];
+  list.forEach((m,i)=>{
+    const d=duesGet(m.id,ym)||{},st=duesState(d.st);
+    rows.push([i+1,m.name,m.number||'',m._grp,st?st.label:'미체크',d.amt||'',d.memo||'']);
+  });
+  downloadCSV(`WAVE_회비_${ym}.csv`,rows);
+}
+function toggleDues(mid,ym){openDuesPicker(mid,ym)}
+
+// ═══ 회비 관리 ═══
+const DUES_STATES=[
+  {v:'paid',       label:'납입',     cls:'d-paid'},
+  {v:'trial_paid', label:'체험납입', cls:'d-trial', amt:true},
+  {v:'unpaid',     label:'미납',     cls:'d-unpaid', memo:true},
+  {v:'carry',      label:'이월',     cls:'d-carry',  memo:true},
+  {v:'rest',       label:'휴식',     cls:'d-rest',   memo:true}
+];
+function duesState(v){return DUES_STATES.find(x=>x.v===v)||null}
+// 예전 형식(true/false) 호환
+function duesGet(mid,ym){
+  const d=(S.dues||{})[mid+'_'+ym];
+  if(d===undefined||d===null||d===false)return null;
+  if(d===true)return{st:'paid'};
+  if(typeof d==='string')return{st:d};
+  return d;
+}
+function duesSet(mid,ym,obj){
+  if(!S.dues)S.dues={};
+  const k=mid+'_'+ym;
+  if(!obj)delete S.dues[k];else S.dues[k]=obj;
+}
+function duesLabel(mid,ym){
+  const d=duesGet(mid,ym);if(!d)return{txt:'✗ 미체크',cls:'d-none'};
+  const st=duesState(d.st);if(!st)return{txt:'✗ 미체크',cls:'d-none'};
+  let t=st.label;
+  if(st.v==='paid')t='✓ '+t;
+  return{txt:t,cls:st.cls,sub:(st.amt&&d.amt?Number(String(d.amt).replace(/[^\d]/g,'')||0).toLocaleString()+'원':'')||(st.memo&&d.memo?d.memo:'')};
+}
+let duesTargetKey=null,hideDuesMemo=false;
+function ymLabel(){return viewYear+'년 '+(viewMonth+1)+'월'}
+function ymKey(){return viewYear+'-'+String(viewMonth+1).padStart(2,'0')}
+
+function renderDues(){
+  const ym=ymKey();
+  const list=[...(S.members||[]).map(m=>({...m,_grp:'활동'})),
+              ...(S.resting||[]).map(m=>({...m,_grp:'휴식'})),
+              ...(S.trial||[]).map(m=>({...m,_grp:'체험'}))].sort(korSort);
+  const cnt={paid:0,trial_paid:0,unpaid:0,carry:0,rest:0,none:0};
+  list.forEach(m=>{const d=duesGet(m.id,ym);if(d&&cnt[d.st]!==undefined)cnt[d.st]++;else cnt.none++});
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn btn-ghost" onclick="prevMonth()">◀</button>
+      <h2 style="font-size:17px;font-weight:700;color:var(--text)">${ymLabel()} 회비</h2>
+      <button class="btn btn-ghost" onclick="nextMonth()">▶</button>
+    </div>
+    <div style="display:flex;gap:8px">${xbtn('exportDues()')}<button class="btn btn-sm ${hideDuesMemo?'btn-primary':'btn-secondary'}" onclick="hideDuesMemo=!hideDuesMemo;render()">${hideDuesMemo?'👁 사유 보이기':'🙈 사유 숨기기'}</button></div>
+  </div>
+  <div class="stats-grid" style="margin-bottom:18px">
+    <div class="stat-card"><div class="stat-label">✓ 납입</div><div class="stat-value" style="color:var(--green)">${cnt.paid}명</div></div>
+    <div class="stat-card"><div class="stat-label">🌟 체험납입</div><div class="stat-value" style="color:#7c3aed">${cnt.trial_paid}명</div></div>
+    <div class="stat-card"><div class="stat-label">✗ 미납</div><div class="stat-value" style="color:var(--red)">${cnt.unpaid}명</div></div>
+    <div class="stat-card"><div class="stat-label">↪ 이월</div><div class="stat-value" style="color:#d97706">${cnt.carry}명</div></div>
+    <div class="stat-card"><div class="stat-label">😴 휴식</div><div class="stat-value" style="color:var(--text3)">${cnt.rest}명</div></div>
+    <div class="stat-card"><div class="stat-label">· 미체크</div><div class="stat-value" style="color:var(--text3)">${cnt.none}명</div></div>
+  </div>
+  <div style="font-size:12px;color:var(--text3);margin-bottom:10px">달을 넘기면 회비는 자동으로 새로 체크해요. 지난 달 기록은 그대로 남습니다.</div>`;
+  if(!list.length){h+='<div class="empty-state"><div class="icon">💰</div><p>회원이 없습니다</p></div>'}
+  else{
+    h+='<div class="member-list">';
+    list.forEach((m,i)=>{
+      const L=duesLabel(m.id,ym),crown=m.role==='exec'?'👑 ':'';
+      const grpTag=m._grp==='휴식'?'<span class="rest-badge" style="margin-left:4px">휴식</span>':m._grp==='체험'?'<span class="trial-badge" style="margin-left:4px">체험</span>':'';
+      h+=`<div class="member-card"><div class="member-info">
+        <div class="member-avatar">${esc(m.number)||(i+1)}</div><div>
+        <div class="member-name">${crown}${esc(m.name)}${grpTag}</div>
+        ${L.sub?`<div class="member-sub dues-memo">${esc(L.sub)}</div>`:''}
+      </div></div>
+      <div class="member-actions">
+        <button class="dues-btn ${L.cls}" onclick="openDuesPicker('${m.id}','${ym}')">${esc(L.txt)}</button>
+      </div></div>`;
+    });
+    h+='</div>';
+  }
+  const el=document.getElementById('tab-dues');if(el)el.innerHTML=h;
+  const w=document.getElementById('tab-dues');if(w)w.classList.toggle('hide-dues-memo',hideDuesMemo);
+}
+function openDuesPicker(mid,ym){
+  duesTargetKey={m:mid,ym:ym};
+  const all=[...(S.members||[]),...(S.resting||[]),...(S.trial||[])];
+  const m=all.find(x=>x.id===mid);
+  const cur=duesGet(mid,ym);
+  const yp=ym.split('-');
+  document.getElementById('duesModalTitle').textContent=(m?m.name:'')+' · '+yp[0]+'년 '+parseInt(yp[1],10)+'월 회비';
+  let h='<div class="pick-list" style="max-height:none">';
+  DUES_STATES.forEach(st=>{
+    const sel=(cur&&cur.st===st.v)?' sel':'';
+    h+=`<button class="pick-opt ${st.cls}${sel}" onclick="pickDues('${st.v}')">${st.label}${sel?' ✓':''}</button>`;
+  });
+  h+=`<button class="pick-opt c-gray" onclick="pickDues('__clear')">체크 해제</button></div>
+  <div id="duesExtra" style="display:none;margin-top:12px">
+    <label style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:4px;display:block" id="duesExtraLabel"></label>
+    <input id="duesExtraInput" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px">
+    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:12px">
+      <button class="btn btn-sm btn-secondary" onclick="closeModal('duesModal')">건너뛰기</button>
+      <button class="btn btn-sm btn-primary" onclick="saveDuesExtra()">저장</button>
+    </div>
+  </div>`;
+  document.getElementById('duesForm').innerHTML=h;
+  openModal('duesModal');
+}
+function pickDues(v){
+  if(!duesTargetKey)return;
+  const {m:mid,ym}=duesTargetKey;
+  if(v==='__clear'){duesSet(mid,ym,null);saveData();render();closeModal('duesModal');return}
+  const st=duesState(v);
+  const prev=duesGet(mid,ym)||{};
+  duesSet(mid,ym,{st:v,amt:(st.amt?(prev.amt||''):''),memo:(st.memo?(prev.memo||''):'')});
+  saveData();render();
+  if(st.amt||st.memo){
+    document.getElementById('duesExtraLabel').textContent=st.amt?'체험 회비 금액':st.label+' 사유';
+    const inp=document.getElementById('duesExtraInput');
+    inp.placeholder=st.amt?'예: 10000':'예: 다음 달 합산 납부';
+    inp.value=st.amt?(prev.amt||''):(prev.memo||'');
+    document.getElementById('duesExtra').style.display='';
+    setTimeout(()=>inp.focus(),50);
+  } else {closeModal('duesModal')}
+}
+function saveDuesExtra(){
+  if(!duesTargetKey)return;
+  const {m:mid,ym}=duesTargetKey;
+  const cur=duesGet(mid,ym);if(!cur){closeModal('duesModal');return}
+  const st=duesState(cur.st),val=document.getElementById('duesExtraInput').value.trim();
+  if(st&&st.amt)cur.amt=val;else if(st&&st.memo)cur.memo=val;
+  duesSet(mid,ym,cur);saveData();closeModal('duesModal');render();
+}
 
 // ═══ MEMBER CRUD ═══
 function openAddMember(){editingMemberId=null;document.getElementById('memberModalTitle').textContent='회원 추가';document.getElementById('memberForm').innerHTML=mfHtml({});openModal('memberModal')}
