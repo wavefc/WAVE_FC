@@ -143,6 +143,31 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .reason-popup.open{display:block}
 .reason-popup textarea{width:100%;min-height:50px;margin-bottom:8px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;outline:none;resize:vertical}
 .reason-popup textarea:focus{border-color:var(--accent)}
+/* ── 출석 상태 선택 팝업 ── */
+.reason-popup{width:250px}
+.pick-title{font-size:14px;font-weight:800;color:var(--green);text-align:center;margin-bottom:2px}
+.pick-sub{font-size:11px;color:var(--text3);text-align:center;margin-bottom:10px}
+.pick-list{display:flex;flex-direction:column;gap:6px;max-height:52vh;overflow-y:auto}
+.pick-opt{width:100%;padding:9px 12px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:.15s}
+.pick-opt:hover{transform:translateY(-1px);border-color:var(--accent)}
+.pick-opt.sel{border-color:var(--accent);background:var(--accent-bg,rgba(37,99,235,.1));color:var(--accent)}
+.pick-opt.c-present{color:var(--green);border-color:rgba(22,163,74,.45)}
+.pick-opt.c-absent{color:#d97706;border-color:rgba(217,119,6,.45)}
+.pick-opt.c-unauth{color:#e11d48;border-color:rgba(225,29,72,.45)}
+.pick-opt.c-trial{color:#7c3aed;border-color:rgba(139,92,246,.45)}
+.pick-opt.c-gray{color:var(--text3)}
+.pick-close{width:100%;margin-top:8px;padding:8px;border-radius:9px;border:none;background:var(--bg3);color:var(--text2);font-size:13px;font-weight:700;cursor:pointer}
+.memo-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.memo-chip{padding:4px 9px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer}
+.memo-chip:hover{border-color:var(--accent);color:var(--accent)}
+.att-btn.injury{background:rgba(219,39,119,.12);border-color:#db2777;color:#db2777;font-size:10px;font-weight:800}
+.att-btn.personal{background:rgba(2,132,199,.12);border-color:#0284c7;color:#0284c7;font-size:10px;font-weight:800}
+.att-btn.sameday{background:rgba(217,119,6,.12);border-color:#d97706;color:#d97706;font-size:9px;font-weight:900;letter-spacing:-.5px}
+.att-btn.rest{background:var(--bg3);border-color:var(--border);color:var(--text3);font-size:10px;font-weight:800}
+.injury-label{font-size:11px;color:#db2777;margin-top:3px;font-weight:700;text-align:center;max-width:80px;line-height:1.3;word-break:keep-all}
+.personal-label{font-size:11px;color:#0284c7;margin-top:3px;font-weight:700;text-align:center;max-width:80px;line-height:1.3;word-break:keep-all}
+.rest-label{font-size:11px;color:var(--text3);margin-top:3px;font-weight:700;text-align:center}
+.memo-line{font-size:10px;color:var(--text3);margin-top:2px;text-align:center;max-width:82px;line-height:1.25;word-break:keep-all}
 .empty-state{text-align:center;padding:50px 20px;color:var(--text3)}.empty-state .icon{font-size:40px;margin-bottom:10px}.empty-state p{margin-bottom:14px}
 .rest-detail{background:var(--bg);border-radius:8px;padding:8px 12px;margin-top:4px;font-size:12px;color:var(--text2)}
 .rest-badge{background:var(--orange-bg);color:var(--orange);padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600}
@@ -184,9 +209,21 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 <div class="modal-overlay" id="restModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3 id="restModalTitle">휴식 처리</h3><button class="modal-close" onclick="closeModal('restModal')">✕</button></div><div id="restForm"></div></div></div>
 <div class="modal-overlay" id="retireModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3>탈퇴 처리</h3><button class="modal-close" onclick="closeModal('retireModal')">✕</button></div><div id="retireForm"></div></div></div>
 <div class="reason-popup" id="reasonPopup">
-  <label style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:4px;display:block">결석 사유</label>
-  <textarea id="reasonText" placeholder="사유를 입력하세요"></textarea>
-  <div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn btn-sm btn-secondary" onclick="cancelReason()">취소</button><button class="btn btn-sm btn-primary" onclick="saveReason()">저장</button></div>
+  <div id="attPickPane">
+    <div class="pick-title" id="pickTitle">이름</div>
+    <div class="pick-sub" id="pickSub">출석 상태 선택</div>
+    <div class="pick-list" id="pickList"></div>
+    <button class="pick-close" onclick="cancelReason()">닫기</button>
+  </div>
+  <div id="attMemoPane" style="display:none">
+    <label style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:4px;display:block" id="memoLabel">메모</label>
+    <div class="memo-chips" id="memoChips"></div>
+    <textarea id="reasonText" placeholder="사유를 입력하세요"></textarea>
+    <div style="display:flex;gap:6px;justify-content:space-between">
+      <button class="btn btn-sm btn-secondary" onclick="backToPicker()">← 상태</button>
+      <div style="display:flex;gap:6px"><button class="btn btn-sm btn-secondary" onclick="cancelReason()">건너뛰기</button><button class="btn btn-sm btn-primary" onclick="saveReason()">저장</button></div>
+    </div>
+  </div>
 </div>
 <script>
 // ═══ FIREBASE CONFIG ═══
@@ -213,7 +250,7 @@ const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&g
 const todayDot=()=>{const d=new Date();return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')};
 
 // ═══ STATE ═══
-let S={members:[],resting:[],retired:[],trial:[],sessions:[],attendance:{},reasons:{},dues:{}};
+let S={members:[],resting:[],retired:[],trial:[],notjoined:[],sessions:[],attendance:{},reasons:{},dues:{}};
 let viewYear=new Date().getFullYear(),viewMonth=new Date().getMonth(),currentTab='attendance';
 let editingMemberId=null,editingSessionId=null,reasonTarget=null;
 let selectedDates=[],venuePerDate={},calYear,calMonth;
@@ -225,7 +262,7 @@ let showAllMembers=false;
 function saveData(){if(saving)return;saving=true;dataRef.set(S).then(()=>{saving=false}).catch(e=>{console.error(e);saving=false})}
 dataRef.on('value',snap=>{
   const d=snap.val();
-  if(d){S.members=d.members||[];S.resting=d.resting||[];S.retired=d.retired||[];S.trial=d.trial||[];S.sessions=d.sessions||[];S.attendance=d.attendance||{};S.reasons=d.reasons||{};S.dues=d.dues||{}}
+  if(d){S.members=d.members||[];S.resting=d.resting||[];S.retired=d.retired||[];S.trial=d.trial||[];S.notjoined=d.notjoined||[];S.sessions=d.sessions||[];S.attendance=d.attendance||{};S.reasons=d.reasons||{};S.dues=d.dues||{}}
   render();
   const ls=document.getElementById('loadingScreen');if(ls)ls.classList.add('hidden');
 });
@@ -247,8 +284,23 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('cl
 // ═══ HELPERS ═══
 function getMS(){return(S.sessions||[]).filter(s=>{const d=new Date(s.date);return d.getFullYear()===viewYear&&d.getMonth()===viewMonth}).sort((a,b)=>a.date.localeCompare(b.date))}
 function sessStats(sid){let p=0;(S.members||[]).forEach(m=>{const v=S.attendance&&S.attendance[m.id+'_'+sid];if(v===true||v==='trial_att')p++});return{present:p,total:(S.members||[]).length}}
-function memMonthRate(mid,ms){if(!ms.length)return{a:0,t:0,r:0};let a=0;ms.forEach(s=>{const v=S.attendance&&S.attendance[mid+'_'+s.id];if(v===true||v==='trial_att')a++});return{a,t:ms.length,r:Math.round(a/ms.length*100)}}
-function teamRate(ms){const mem=S.members||[];if(!ms.length||!mem.length)return 0;let t=0;mem.forEach(m=>ms.forEach(s=>{const v=S.attendance&&S.attendance[m.id+'_'+s.id];if(v===true||v==='trial_att')t++}));return Math.round(t/(ms.length*mem.length)*100)}
+// ═══ ATTENDANCE (상태 선택식) ═══
+// 미니홈피 출석탭과 동일한 상태 구성. count:true 인 상태만 출석률에 반영.
+const ATT_STATES=[
+  {v:true,        label:'○ 출석',        cls:'present', icon:'✓',    sub:'',       c:'c-present', count:true},
+  {v:'absent',    label:'× 결석',        cls:'absent',  icon:'✗',    sub:'',       c:'c-absent'},
+  {v:'sameday',   label:'× (당일) 당일 결석', cls:'sameday', icon:'✗당일', sub:'당일결석', c:'c-absent'},
+  {v:'unauth',    label:'무단',          cls:'unauth',  icon:'무단', sub:'무단결석', c:'c-unauth'},
+  {v:'trial_att', label:'체험',          cls:'trial',   icon:'체험', sub:'체험',    c:'c-trial', count:true},
+  {v:'rest',      label:'휴식중',        cls:'rest',    icon:'휴식', sub:'휴식중',  c:'c-gray'},
+  {v:'injury',    label:'부상',          cls:'injury',  icon:'부상', sub:'부상',    c:'c-absent'},
+  {v:'personal',  label:'개인사정',      cls:'personal',icon:'개인', sub:'개인사정',c:'c-absent'},
+  {v:'note',      label:'비고',          cls:'note',    icon:'—',    sub:'',       c:'c-gray'}
+];
+function attState(v){return ATT_STATES.find(s=>s.v===v)||null}
+function attCounts(v){const s=ATT_STATES.find(x=>x.v===v);return!!(s&&s.count)}
+function memMonthRate(mid,ms){if(!ms.length)return{a:0,t:0,r:0};let a=0;ms.forEach(s=>{if(attCounts(S.attendance&&S.attendance[mid+'_'+s.id]))a++});return{a,t:ms.length,r:Math.round(a/ms.length*100)}}
+function teamRate(ms){const mem=S.members||[];if(!ms.length||!mem.length)return 0;let t=0;mem.forEach(m=>ms.forEach(s=>{if(attCounts(S.attendance&&S.attendance[m.id+'_'+s.id]))t++}));return Math.round(t/(ms.length*mem.length)*100)}
 function rb(rate,txt){const c=rate>=70?'rate-high':rate>=40?'rate-mid':'rate-low';return`<span class="rate-badge ${c}">${txt}</span>`}
 function hasWarning(mid,ms){
   if(!ms.length)return false;
@@ -329,17 +381,16 @@ function renderAtt(){
       h+=`<tr${m._status?' style="opacity:.6"':''}><td>${i+1}</td><td class="name-cell" ${!m._status?`onclick="openDetail('${m.id}')"`:''}>${crown}${esc(m.name)}${statusTag}${warn?'<span class="warning-badge">🟨 경고</span>':''}</td><td style="font-size:12px;color:var(--text3)">${esc(m.joinDate)}</td><td>${esc(m.number)||'-'}</td>`;
       ms.forEach(s=>{
         const key=m.id+'_'+s.id,val=(S.attendance||{})[key],reason=(S.reasons||{})[key];
-        let cls='none',icon='·';
-        if(val===true){cls='present';icon='✓'}
-        else if(val==='absent'||val===false){cls='absent';icon='✗'}
-        else if(val==='unauth'){cls='unauth';icon='무단'}
-        else if(val==='trial_att'){cls='trial';icon='체험'}
-        else if(val==='note'){cls='note';icon='—'}
+        const st=(val===false)?attState('absent'):attState(val);
+        const cls=st?st.cls:'none', icon=st?st.icon:'·';
         h+=`<td><div class="att-cell"><button class="att-btn ${cls}" onclick="cycleAtt('${m.id}','${s.id}',event)">${icon}</button>`;
-        if((val==='absent'||val===false)&&reason)h+=`<div class="reason-label" title="${esc(reason)}">${esc(reason)}</div>`;
-        if(val==='unauth')h+=`<div class="unauth-label">무단결석</div>`;
-        if(val==='trial_att')h+=`<div class="trial-label">체험</div>`;
-        if(val==='note'&&reason)h+=`<div class="note-label" title="${esc(reason)}">${esc(reason)}</div>`;
+        // 상태 기본 라벨
+        if(st&&st.sub)h+=`<div class="${st.cls==='injury'?'injury':st.cls==='personal'?'personal':st.cls==='rest'?'rest':st.cls==='trial'?'trial':st.cls==='unauth'?'unauth':'note'}-label">${st.sub}</div>`;
+        // 메모는 어떤 상태든 함께 표시
+        if(reason&&!(st&&st.sub===reason)){
+          const rc=(st&&(st.v==='absent'||st.v==='sameday'))?'reason-label':'memo-line';
+          h+=`<div class="${rc}" title="${esc(reason)}">${esc(reason)}</div>`;
+        }
         h+=`</div></td>`;
       });
       h+=`<td>${rb(r.r,r.r+'% ('+r.a+'/'+r.t+')')}</td></tr>`;
@@ -407,20 +458,41 @@ function renderRest(){
 function renderRet(){
   const sorted=[...(S.retired||[])].sort(korSort);
   let h=`<h2 style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px">탈퇴 회원 (${(S.retired||[]).length}명)</h2>`;
-  if(!sorted.length){h+='<div class="empty-state"><div class="icon">✅</div><p>탈퇴한 회원이 없습니다</p></div>'}
+  if(!sorted.length){h+='<div class="empty-state" style="padding:30px 20px"><div class="icon">✅</div><p>탈퇴한 회원이 없습니다</p></div>'}
   else{h+='<div class="member-list">';sorted.forEach(m=>{h+=`<div class="member-card" style="opacity:.8"><div style="flex:1"><div class="member-name" style="color:var(--text2)">${esc(m.name)} <span style="font-size:12px;color:var(--text3)">#${esc(m.number)||'-'}</span></div><div class="member-sub">가입: ${esc(m.joinDate)||'-'} · 탈퇴: ${esc(m.retiredDate)||'-'}${m.phone?' · '+esc(m.phone):''}</div>${m.retireReason?'<div class="rest-detail">탈퇴 사유: '+esc(m.retireReason)+'</div>':''}${m.retireMemo?'<div class="rest-detail" style="margin-top:4px">메모: '+esc(m.retireMemo)+'</div>':''}</div><div class="member-actions"><button class="btn btn-secondary btn-sm" onclick="restoreRetired('${m.id}')">복귀</button><button class="btn btn-danger btn-sm" onclick="deleteRetired('${m.id}')">삭제</button></div></div>`});h+='</div>';}
+  // ── 미가입 멤버 (체험 후 정식 가입하지 않은 분) ──
+  const nj=[...(S.notjoined||[])].sort(korSort);
+  h+=`<h2 style="font-size:17px;font-weight:700;color:var(--text);margin:28px 0 6px">미가입 멤버 (${nj.length}명)</h2>
+  <div style="font-size:12px;color:var(--text3);margin-bottom:14px">체험만 하고 정식 가입하지 않은 분들이에요.</div>`;
+  if(!nj.length){h+='<div class="empty-state" style="padding:30px 20px"><div class="icon">🌱</div><p>미가입 멤버가 없습니다</p></div>'}
+  else{
+    h+='<div class="member-list">';
+    nj.forEach(m=>{
+      h+=`<div class="member-card" style="opacity:.85"><div style="flex:1">
+        <div class="member-name" style="color:var(--text2)">${esc(m.name)} <span class="trial-badge">미가입</span></div>
+        <div class="member-sub">체험: ${esc(m.joinDate)||'-'} · 미가입 확정: ${esc(m.notJoinDate)||'-'}${m.phone?' · '+esc(m.phone):''}${m.route?' · 경로: '+esc(m.route):''}</div>
+        ${m.notJoinReason?'<div class="rest-detail">미가입 사유: '+esc(m.notJoinReason)+'</div>':''}
+        ${m.memo?'<div class="rest-detail" style="margin-top:4px">메모: '+esc(m.memo)+'</div>':''}
+      </div><div class="member-actions">
+        <button class="btn btn-secondary btn-sm" onclick="restoreNotJoined('${m.id}')">체험 복귀</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteNotJoined('${m.id}')">삭제</button>
+      </div></div>`;
+    });
+    h+='</div>';
+  }
   document.getElementById('tab-retired').innerHTML=h;
 }
 
 function renderAll(){
-  const act=[...(S.members||[])].sort(korSort),rest=[...(S.resting||[])].sort(korSort),ret=[...(S.retired||[])].sort(korSort),tri=[...(S.trial||[])].sort(korSort);
-  const total=act.length+rest.length+ret.length+tri.length;
+  const act=[...(S.members||[])].sort(korSort),rest=[...(S.resting||[])].sort(korSort),ret=[...(S.retired||[])].sort(korSort),tri=[...(S.trial||[])].sort(korSort),nj=[...(S.notjoined||[])].sort(korSort);
+  const total=act.length+rest.length+ret.length+tri.length+nj.length;
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h2 style="font-size:17px;font-weight:700;color:var(--text)">전체 회원 관리 (총 ${total}명)</h2><button class="btn btn-primary" onclick="openAddMember()">+ 회원 추가</button></div>
   <div class="stats-grid" style="margin-bottom:20px">
     <div class="stat-card"><div class="stat-label">⚽ 활동</div><div class="stat-value blue">${act.length}명</div></div>
     <div class="stat-card"><div class="stat-label">😴 휴식</div><div class="stat-value" style="color:var(--orange)">${rest.length}명</div></div>
     <div class="stat-card"><div class="stat-label">🌟 체험</div><div class="stat-value" style="color:#7c3aed">${tri.length}명</div></div>
     <div class="stat-card"><div class="stat-label">📁 탈퇴</div><div class="stat-value" style="color:var(--red)">${ret.length}명</div></div>
+    <div class="stat-card"><div class="stat-label">🌱 미가입</div><div class="stat-value" style="color:var(--text3)">${nj.length}명</div></div>
   </div>`;
   h+=`<h3 style="font-size:15px;font-weight:700;color:var(--text);margin:0 0 10px 4px">⚽ 활동 회원 (${act.length})</h3>`;
   if(!act.length)h+='<div style="text-align:center;padding:16px;color:var(--text3);margin-bottom:20px">없음</div>';
@@ -434,6 +506,9 @@ function renderAll(){
   h+=`<h3 style="font-size:15px;font-weight:700;color:var(--text);margin:0 0 10px 4px">📁 탈퇴 회원 (${ret.length})</h3>`;
   if(!ret.length)h+='<div style="text-align:center;padding:16px;color:var(--text3)">없음</div>';
   else{h+='<div class="member-list">';ret.forEach(m=>{h+=`<div class="member-card" style="opacity:.7"><div class="member-info"><div class="member-avatar" style="background:var(--red-bg);color:var(--red)">📁</div><div><div class="member-name" style="color:var(--text3)">${esc(m.name)}</div><div class="member-sub">탈퇴: ${esc(m.retiredDate)||'-'}${m.retireReason?' · '+esc(m.retireReason):''}</div></div></div><div class="member-actions"><button class="btn btn-secondary btn-sm" onclick="restoreRetired('${m.id}')">복귀</button></div></div>`});h+='</div>';}
+  h+=`<h3 style="font-size:15px;font-weight:700;color:var(--text);margin:24px 0 10px 4px">🌱 미가입 멤버 (${nj.length})</h3>`;
+  if(!nj.length)h+='<div style="text-align:center;padding:16px;color:var(--text3)">없음</div>';
+  else{h+='<div class="member-list">';nj.forEach(m=>{h+=`<div class="member-card" style="opacity:.7"><div class="member-info"><div class="member-avatar" style="background:var(--bg2);color:var(--text3)">🌱</div><div><div class="member-name" style="color:var(--text3)">${esc(m.name)}</div><div class="member-sub">미가입: ${esc(m.notJoinDate)||'-'}${m.notJoinReason?' · '+esc(m.notJoinReason):''}</div></div></div><div class="member-actions"><button class="btn btn-secondary btn-sm" onclick="restoreNotJoined('${m.id}')">체험 복귀</button></div></div>`});h+='</div>';}
   document.getElementById('tab-all').innerHTML=h;
 }
 
@@ -455,6 +530,7 @@ function renderTrial(){
       </div></div>
       <div class="member-actions">
         ${joinBtn}
+        <button class="btn btn-sm" style="background:var(--red-bg);color:var(--red)" onclick="openNotJoin('${m.id}')">미가입 확정</button>
         <button class="btn btn-secondary btn-sm" onclick="openEditTrial('${m.id}')">수정</button>
         <button class="btn btn-danger btn-sm" onclick="deleteTrial('${m.id}')">삭제</button>
       </div></div>`;
@@ -468,49 +544,78 @@ function renderTrial(){
 function prevMonth(){if(viewMonth===0){viewMonth=11;viewYear--}else viewMonth--;render()}
 function nextMonth(){if(viewMonth===11){viewMonth=0;viewYear++}else viewMonth++;render()}
 
-// ═══ ATTENDANCE (4-state) ═══
-function cycleAtt(mid,sid,evt){
-  // Close any open popup first
-  document.getElementById('reasonPopup').classList.remove('open');reasonTarget=null;
+// 상태별 메모 빠른 입력 칩
+const MEMO_CHIPS={
+  'true':['당일 출석 전환','지각','조기 퇴장'],
+  'absent':['아픔','업무','출장','경조사','개인사정'],
+  'sameday':['당일 아픔','갑작스런 업무','교통 문제'],
+  'unauth':['연락 두절'],
+  'trial_att':['체험 1회차','체험 2회차'],
+  'rest':['휴식 기간'],
+  'injury':['부상 회복 중'],
+  'personal':['개인사정'],
+  'note':['휴식 처리','탈퇴 처리']
+};
+function cycleAtt(mid,sid,evt){ openAttPicker(mid,sid,evt); }
+function openAttPicker(mid,sid,evt){
+  const all=[...(S.members||[]),...(S.resting||[]),...(S.retired||[]),...(S.trial||[])];
+  const m=all.find(x=>x.id===mid), s=(S.sessions||[]).find(x=>x.id===sid);
+  reasonTarget={m:mid,s:sid,type:'pick'};
+  document.getElementById('pickTitle').textContent=m?m.name:'';
+  document.getElementById('pickSub').textContent=(s?esc(s.date):'')+' 출석 상태 선택';
+  const cur=(S.attendance||{})[mid+'_'+sid];
+  let h='';
+  ATT_STATES.forEach(st=>{
+    const sel=(cur===st.v)?' sel':'';
+    h+=`<button class="pick-opt ${st.c}${sel}" onclick="pickAtt('${String(st.v)}')">${esc(st.label)}${sel?' ✓':''}</button>`;
+  });
+  h+=`<button class="pick-opt c-gray" onclick="pickAtt('__clear')">지우기</button>`;
+  document.getElementById('pickList').innerHTML=h;
+  showPane('pick');
+  const popup=document.getElementById('reasonPopup');
+  const r=evt.target.getBoundingClientRect();
+  popup.style.top=Math.max(8,Math.min(r.bottom+8,window.innerHeight-470))+'px';
+  popup.style.left=Math.min(Math.max(8,r.left-100),window.innerWidth-262)+'px';
+  popup.classList.add('open');
+}
+function showPane(which){
+  document.getElementById('attPickPane').style.display=which==='pick'?'':'none';
+  document.getElementById('attMemoPane').style.display=which==='memo'?'':'none';
+}
+function pickAtt(raw){
+  if(!reasonTarget)return;
+  const mid=reasonTarget.m,sid=reasonTarget.s,key=mid+'_'+sid;
   if(!S.attendance)S.attendance={};if(!S.reasons)S.reasons={};
-  const key=mid+'_'+sid,cur=S.attendance[key];
-  if(cur===undefined||cur===null){
-    S.attendance[key]=true; delete S.reasons[key]; // → 출석
-  }else if(cur===true){
-    S.attendance[key]='absent'; openReasonPopup(mid,sid,evt); // → 결석+사유
-  }else if(cur==='absent'||cur===false){
-    S.attendance[key]='unauth'; delete S.reasons[key]; // → 무단결석
-  }else if(cur==='unauth'){
-    S.attendance[key]='trial_att'; delete S.reasons[key]; // → 체험
-  }else if(cur==='trial_att'){
-    S.attendance[key]='note'; openNotePopup(mid,sid,evt); // → 비고
-  }else if(cur==='note'){
-    delete S.attendance[key]; delete S.reasons[key]; // → 초기화
+  if(raw==='__clear'){
+    delete S.attendance[key];delete S.reasons[key];
+    saveData();render();cancelReason();return;
   }
+  const val=(raw==='true')?true:raw;
+  S.attendance[key]=val;
   saveData();render();
+  // 상태를 고른 뒤 메모 단계로 이동
+  reasonTarget={m:mid,s:sid,type:'memo',val:val};
+  const st=attState(val);
+  document.getElementById('memoLabel').textContent=(st?st.label.replace(/^[○×]\s*/,'').replace(/^\(당일\)\s*/,''):'')+' 메모 (선택)';
+  const chips=MEMO_CHIPS[String(val)]||[];
+  document.getElementById('memoChips').innerHTML=chips.map(c=>`<span class="memo-chip" onclick="addChip('${esc(c)}')">${esc(c)}</span>`).join('');
+  const ta=document.getElementById('reasonText');
+  ta.value=(S.reasons&&S.reasons[key])||'';
+  ta.placeholder=(val===true)?'예: 당일 출석으로 전환':'사유를 입력하세요';
+  showPane('memo');
+  setTimeout(()=>ta.focus(),50);
 }
-function openReasonPopup(mid,sid,evt){
-  reasonTarget={m:mid,s:sid,type:'reason'};const popup=document.getElementById('reasonPopup');
-  document.querySelector('#reasonPopup label').textContent='결석 사유';
-  document.getElementById('reasonText').value=(S.reasons&&S.reasons[mid+'_'+sid])||'';
-  document.getElementById('reasonText').placeholder='사유를 입력하세요';
-  const r=evt.target.getBoundingClientRect();
-  popup.style.top=Math.min(r.bottom+8,window.innerHeight-220)+'px';
-  popup.style.left=Math.min(r.left,window.innerWidth-260)+'px';
-  popup.classList.add('open');setTimeout(()=>document.getElementById('reasonText').focus(),50);
-}
-function openNotePopup(mid,sid,evt){
-  reasonTarget={m:mid,s:sid,type:'note'};const popup=document.getElementById('reasonPopup');
-  document.querySelector('#reasonPopup label').textContent='비고 사유';
-  document.getElementById('reasonText').value=(S.reasons&&S.reasons[mid+'_'+sid])||'';
-  document.getElementById('reasonText').placeholder='휴식, 탈퇴처리 등 사유 입력';
-  const r=evt.target.getBoundingClientRect();
-  popup.style.top=Math.min(r.bottom+8,window.innerHeight-220)+'px';
-  popup.style.left=Math.min(r.left,window.innerWidth-260)+'px';
-  popup.classList.add('open');setTimeout(()=>document.getElementById('reasonText').focus(),50);
+function addChip(t){const ta=document.getElementById('reasonText');ta.value=t;ta.focus()}
+function backToPicker(){
+  if(!reasonTarget)return;
+  const evt={target:{getBoundingClientRect:()=>document.getElementById('reasonPopup').getBoundingClientRect()}};
+  const mid=reasonTarget.m,sid=reasonTarget.s;
+  const popup=document.getElementById('reasonPopup');const keep={top:popup.style.top,left:popup.style.left};
+  openAttPicker(mid,sid,evt);
+  popup.style.top=keep.top;popup.style.left=keep.left;
 }
 function saveReason(){if(!reasonTarget)return;if(!S.reasons)S.reasons={};const k=reasonTarget.m+'_'+reasonTarget.s,t=document.getElementById('reasonText').value.trim();if(t)S.reasons[k]=t;else delete S.reasons[k];document.getElementById('reasonPopup').classList.remove('open');reasonTarget=null;saveData();render()}
-function cancelReason(){document.getElementById('reasonPopup').classList.remove('open');reasonTarget=null}
+function cancelReason(){document.getElementById('reasonPopup').classList.remove('open');reasonTarget=null;showPane('pick')}
 document.addEventListener('click',e=>{const p=document.getElementById('reasonPopup');if(p.classList.contains('open')&&!p.contains(e.target)&&!e.target.classList.contains('att-btn'))cancelReason()});
 
 // ═══ DUES ═══
@@ -611,6 +716,49 @@ function confirmJoinTrial(id){
   saveData();closeModal('memberModal');render();
 }
 function deleteTrial(id){const m=(S.trial||[]).find(x=>x.id===id);if(!m||!confirm(m.name+' 체험회원을 삭제하시겠습니까?'))return;S.trial=S.trial.filter(x=>x.id!==id);saveData();render()}
+
+// ═══ 미가입 처리 (체험 → 미가입 멤버) ═══
+function openNotJoin(id){
+  const m=(S.trial||[]).find(x=>x.id===id);if(!m)return;
+  document.getElementById('memberModalTitle').textContent=esc(m.name)+' 미가입 처리';
+  document.getElementById('memberForm').innerHTML=`
+    <p style="margin-bottom:16px;color:var(--text2)"><strong>${esc(m.name)}</strong> 체험회원을 <strong>미가입 멤버</strong>로 옮깁니다.<br>
+    <span style="font-size:12px;color:var(--text3)">탈퇴회원 탭 아래쪽에서 따로 관리돼요. 나중에 체험으로 되돌릴 수 있어요.</span></p>
+    <div class="field"><label>미가입 확정일</label><input id="njDate" value="${todayDot()}" placeholder="예: 2026.08.18"></div>
+    <div class="field"><label>미가입 사유</label><input id="njReason" placeholder="예: 거리가 멀어서 / 시간 안 맞음"></div>
+    <div class="field"><label>메모 (선택)</label><input id="njMemo" value="${esc(m.memo||'')}" placeholder="참고할 내용"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px">
+      <button class="btn btn-secondary" onclick="closeModal('memberModal')">취소</button>
+      <button class="btn btn-primary" onclick="confirmNotJoin('${m.id}')">미가입으로 이동</button>
+    </div>`;
+  openModal('memberModal');
+}
+function confirmNotJoin(id){
+  const m=(S.trial||[]).find(x=>x.id===id);if(!m)return;
+  S.trial=S.trial.filter(x=>x.id!==id);
+  const{joinStatus,...base}=m;
+  if(!S.notjoined)S.notjoined=[];
+  S.notjoined.push({...base,
+    notJoinDate:document.getElementById('njDate').value.trim()||todayDot(),
+    notJoinReason:document.getElementById('njReason').value.trim(),
+    memo:document.getElementById('njMemo').value.trim()});
+  saveData();closeModal('memberModal');render();
+}
+function restoreNotJoined(id){
+  const m=(S.notjoined||[]).find(x=>x.id===id);
+  if(!m||!confirm(m.name+' 님을 체험회원으로 되돌리겠습니까?'))return;
+  S.notjoined=S.notjoined.filter(x=>x.id!==id);
+  const{notJoinDate,notJoinReason,...base}=m;
+  if(!S.trial)S.trial=[];
+  S.trial.push({...base,joinStatus:'not_joined'});
+  saveData();render();
+}
+function deleteNotJoined(id){
+  const m=(S.notjoined||[]).find(x=>x.id===id);
+  if(!m||!confirm(m.name+' 님을 완전 삭제하시겠습니까?'))return;
+  S.notjoined=S.notjoined.filter(x=>x.id!==id);
+  saveData();render();
+}
 
 // ═══ DETAIL ═══
 function openDetail(id){
