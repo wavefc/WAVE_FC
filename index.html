@@ -257,6 +257,23 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .cand-o{font-size:14px;font-weight:900;flex-shrink:0}
 .form-btn{padding:5px 13px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text2);font-size:12px;font-weight:800;cursor:pointer}
 .form-btn.on{border-color:var(--accent);background:var(--accent);color:#fff}
+.form-btn.st.on{border-color:#7c3aed;background:#7c3aed}
+.btn-div{width:1px;height:20px;background:var(--border);margin:0 2px}
+.report{margin-top:16px;border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--bg)}
+.rep-h{font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.rep-ovr{font-size:22px;font-weight:900;line-height:1}
+.rep-bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 16px;margin-bottom:12px}
+.rb{display:flex;align-items:center;gap:8px}
+.rb-k{width:46px;font-size:11px;font-weight:800;flex-shrink:0}
+.rb-bar{flex:1;height:7px;background:var(--bg3);border-radius:5px;overflow:hidden}
+.rb-fill{height:100%;border-radius:5px}
+.rb-v{width:20px;text-align:right;font-size:11px;font-weight:800}
+.rep-verdict{font-size:13px;font-weight:700;color:var(--text);background:var(--bg2);border-left:3px solid var(--accent);padding:9px 12px;border-radius:8px;margin-bottom:12px;line-height:1.5}
+.rep-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.rep-t{font-size:12px;font-weight:800;margin-bottom:5px}
+.rep-t.good{color:var(--green)}.rep-t.bad{color:#d97706}
+.rep-li{font-size:12px;color:var(--text2);line-height:1.55;padding-left:11px;position:relative;margin-bottom:3px}
+.rep-li:before{content:'·';position:absolute;left:2px;font-weight:900}
 .sr-grp-h{font-size:12px;font-weight:800;margin-bottom:6px}
 .inj-row{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--bg)}
 .inj-memo{font-size:11px;color:var(--text3);margin-top:4px;background:var(--bg2);padding:4px 8px;border-radius:6px}
@@ -972,23 +989,91 @@ function picks(){return ((S.lineup||{}).picks||{})}
 function setForm(f){if(!S.lineup)S.lineup={};S.lineup={...S.lineup,form:f};saveData();render()}
 function slotOVR(mid,sl){return ovrFor(curAbil(mid),sl.base,sl.side,pstat(mid).foot||'R')}
 // 슬롯별 후보 (능력치 기록 있는 사람만)
+// 팀 성향 — 자동 배치 기준이 달라집니다
+const STYLES={
+  attack :{label:'공격형',desc:'화력 우선',
+    pick:(a,ovr)=>ovr*0.45+groupAvgKey(a,'SHO')*0.35+groupAvgKey(a,'DRI')*0.2},
+  defense:{label:'수비형',desc:'안정 우선',
+    pick:(a,ovr)=>ovr*0.45+groupAvgKey(a,'DEF')*0.35+groupAvgKey(a,'PHY')*0.2},
+  balance:{label:'밸런스',desc:'종합 우선',
+    pick:(a,ovr)=>ovr}
+};
+function groupAvgKey(a,key){const g=STAT_GROUPS.find(x=>x.key===key);return g?groupAvg(a,g):0}
+function curStyle(){const s=(S.lineup||{}).style;return STYLES[s]?s:'balance'}
+function setStyle(v){if(!S.lineup)S.lineup={};S.lineup={...S.lineup,style:v};saveData();render()}
+function styleScore(mid,sl){
+  const ovr=slotOVR(mid,sl);
+  if(sl.base==='골레이로')return ovr; // 골문은 성향과 무관
+  return STYLES[curStyle()].pick(curAbil(mid),ovr);
+}
 function candidates(sl){
   return statMembers().filter(m=>hasAbil(m.id))
-    .map(m=>({m:m,ovr:slotOVR(m.id,sl),inj:activeInj(m.id).length>0}))
-    .sort((a,b)=>b.ovr-a.ovr);
+    .map(m=>({m:m,ovr:slotOVR(m.id,sl),sc:styleScore(m.id,sl),inj:activeInj(m.id).length>0}))
+    .sort((a,b)=>b.sc-a.sc);
 }
+
 function lineup(){
   const pk=picks(),fm=FORMATIONS[curForm()],out={},used={};
   const all=statMembers();
-  // 1) 수동 지정 먼저 고정
   fm.slots.forEach(sl=>{const mid=pk[sl.id];if(mid&&all.some(m=>m.id===mid)&&!used[mid]){out[sl.id]=mid;used[mid]=1}});
-  // 2) 남은 자리는 남은 선수 중 최적 조합으로 채움 (밀려난 자리도 다시 채워짐)
   const pairs=[];
   fm.slots.forEach(sl=>{if(out[sl.id])return;
-    candidates(sl).forEach(c=>{if(!used[c.m.id])pairs.push({slot:sl.id,mid:c.m.id,ovr:c.ovr})})});
-  pairs.sort((a,b)=>b.ovr-a.ovr);
+    candidates(sl).forEach(c=>{if(!used[c.m.id])pairs.push({slot:sl.id,mid:c.m.id,sc:styleScore(c.m.id,sl)})})});
+  pairs.sort((a,b)=>b.sc-a.sc);
   pairs.forEach(p=>{if(out[p.slot]===undefined&&!used[p.mid]){out[p.slot]=p.mid;used[p.mid]=1}});
   return out;
+}
+// ── 팀 총평 ──
+function teamReport(){
+  const fm=FORMATIONS[curForm()],lu=lineup();
+  const starters=fm.slots.map(sl=>({sl:sl,mid:lu[sl.id]})).filter(x=>x.mid);
+  if(starters.length<fm.slots.length)return null;
+  const field=starters.filter(x=>x.sl.base!=='골레이로');
+  const avg={};
+  STAT_GROUPS.forEach(g=>{avg[g.key]=Math.round(field.reduce((s,x)=>s+groupAvg(curAbil(x.mid),g),0)/field.length)});
+  const gkSl=starters.find(x=>x.sl.base==='골레이로');
+  const gkOvr=gkSl?slotOVR(gkSl.mid,gkSl.sl):0;
+  const teamOvr=Math.round(starters.reduce((s,x)=>s+slotOVR(x.mid,x.sl),0)/starters.length);
+  const order=['SHO','PAS','DRI','DEF','PHY'].sort((a,b)=>avg[b]-avg[a]);
+  const nm=k=>(STAT_GROUPS.find(g=>g.key===k)||{}).label;
+  const pros=[],cons=[];
+  // 강점·약점
+  pros.push(`${nm(order[0])}(${avg[order[0]]})·${nm(order[1])}(${avg[order[1]]})이 팀의 축이에요.`);
+  if(avg[order[4]]<50)cons.push(`${nm(order[4])}이 ${avg[order[4]]}로 가장 약해요.`);
+  else cons.push(`상대적으로 ${nm(order[4])}(${avg[order[4]]})이 아쉬워요.`);
+  // 공수 균형
+  const gap=avg.SHO-avg.DEF;
+  if(gap>=12)pros.push('앞선에서 밀어붙이는 힘이 강합니다.'),cons.push('수비 전환이 늦으면 역습에 취약해요.');
+  else if(gap<=-12)pros.push('실점을 억제하는 안정감이 있어요.'),cons.push('마무리를 지어줄 화력이 부족합니다.');
+  else pros.push('공수 균형이 고르게 잡혀 있어요.');
+  // 체력·기동력
+  if(avg.PHY>=70)pros.push('활동량이 좋아 강한 압박을 오래 끌고 갈 수 있어요.');
+  else if(avg.PHY<50)cons.push('체력·스피드가 낮아 후반 집중력 저하가 걱정돼요.');
+  // 골문
+  if(gkOvr>=75)pros.push(`골문(${gkOvr})이 든든해 뒷문 걱정은 적습니다.`);
+  else if(gkOvr<50)cons.push(`골레이로(${gkOvr})가 약해 세트피스·중거리 실점 위험이 큽니다.`);
+  // 좌우 균형
+  const L=starters.find(x=>x.sl.side==='L'),R=starters.find(x=>x.sl.side==='R');
+  if(L&&R){
+    const dl=slotOVR(L.mid,L.sl),dr=slotOVR(R.mid,R.sl);
+    if(Math.abs(dl-dr)>=12)cons.push(`좌우 편차가 커요(${dl} vs ${dr}). 약한 쪽으로 공격이 몰릴 수 있어요.`);
+  }
+  // 주발 구성
+  const feet=field.map(x=>pstat(x.mid).foot||'R');
+  if(feet.every(f=>f==='R'))cons.push('전원 오른발이라 왼쪽 측면 전개가 단조로워질 수 있어요.');
+  else if(feet.filter(f=>f==='L'||f==='B').length>=2)pros.push('왼발 자원이 있어 양쪽 전개가 가능해요.');
+  // 부상
+  const inj=starters.filter(x=>activeInj(x.mid).length);
+  if(inj.length)cons.push(`부상 중인 선수 ${inj.length}명이 선발에 포함돼 있어요.`);
+  // 한 줄 총평
+  const st=curStyle();
+  let verdict;
+  if(gap>=12)verdict=`${teamOvr}점짜리 공격 지향 스쿼드. 선제골로 흐름을 잡는 경기에 어울려요.`;
+  else if(gap<=-12)verdict=`${teamOvr}점짜리 수비 지향 스쿼드. 버티다 역습으로 끝내는 그림이 좋아요.`;
+  else verdict=`${teamOvr}점짜리 균형 스쿼드. 상대에 맞춰 어느 쪽으로도 갈 수 있어요.`;
+  if(st==='attack'&&avg.DEF<52)verdict+=' 공격형으로 뽑은 만큼 뒷공간은 감수해야 합니다.';
+  if(st==='defense'&&avg.SHO<52)verdict+=' 수비형 구성이라 득점 루트를 따로 준비해두세요.';
+  return{avg,teamOvr,gkOvr,pros,cons,verdict,order};
 }
 function pickPlayer(slotId,mid){
   if(!S.lineup)S.lineup={};
@@ -1037,26 +1122,50 @@ function renderFormation(){
   const filled=fm.slots.filter(sl=>lu[sl.id]).length;
   let h=`<div class="stat-box"><div class="box-h" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
     <span>포메이션 · 추천 라인업</span>
-    <div style="display:flex;gap:6px;align-items:center">
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
       ${Object.keys(FORMATIONS).map(k=>`<button class="form-btn${curForm()===k?' on':''}" onclick="setForm('${k}')">${FORMATIONS[k].label}</button>`).join('')}
+      <span class="btn-div"></span>
+      ${Object.keys(STYLES).map(k=>`<button class="form-btn st${curStyle()===k?' on':''}" onclick="setStyle('${k}')" title="${STYLES[k].desc}">${STYLES[k].label}</button>`).join('')}
       <button class="btn btn-sm btn-secondary" onclick="resetLineup()">자동 재배치</button>
     </div></div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">${esc(fm.desc)} · 팀 평균 ${filled?Math.round(total/filled):0} · 오른쪽에서 선수를 누르면 그 자리에 배치돼요.</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">${esc(fm.desc)} · ${STYLES[curStyle()].label} 기준 · 팀 평균 ${filled?Math.round(total/filled):0} · 오른쪽에서 선수를 누르면 그 자리에 배치돼요.</div>
     <div class="form-wrap"><div class="pitch-box">${pitchSVG()}</div><div class="slot-list">`;
   fm.slots.forEach(sl=>{
-    const cands=candidates(sl),cur=lu[sl.id];
+    const cur=lu[sl.id];
+    const elsewhere={};fm.slots.forEach(o=>{if(o.id!==sl.id&&lu[o.id])elsewhere[lu[o.id]]=1});
+    let cands=candidates(sl).filter(c=>!elsewhere[c.m.id]);
+    const pick=cands.find(c=>c.m.id===cur);
+    if(pick)cands=[pick,...cands.filter(c=>c.m.id!==cur)];
     h+=`<div class="slot-card" id="slot_${sl.id}"><div class="slot-h">${esc(sl.label)}</div>`;
-    if(!cands.length)h+='<div style="font-size:11px;color:var(--text3);padding:4px 0">능력치가 입력된 회원이 없어요.</div>';
-    else cands.slice(0,4).forEach((c,i)=>{
+    if(!cands.length)h+='<div style="font-size:11px;color:var(--text3);padding:4px 0">배치 가능한 회원이 없어요.</div>';
+    else cands.slice(0,5).forEach((c,i)=>{
       const on=cur===c.m.id;
       h+=`<div class="cand${on?' on':''}" onclick="pickPlayer('${sl.id}','${c.m.id}')">
-        <span class="cand-r">${i===0?'<span class="rec">추천</span>':i+1}</span>
+        <span class="cand-r">${on?'<span class="rec">선발</span>':i+1}</span>
         <span class="cand-n">${esc(c.m.name)}${c.inj?' <span class="inj-badge">🩹</span>':''}</span>
         <span class="cand-o" style="color:${ovrColor(c.ovr)}">${c.ovr}</span></div>`;
     });
     h+='</div>';
   });
-  return h+'</div></div></div>';
+  h+='</div></div>';
+  // 총평
+  const rp=teamReport();
+  if(rp){
+    h+=`<div class="report"><div class="rep-h">📋 팀 총평 <span class="rep-ovr" style="color:${ovrColor(rp.teamOvr)}">${rp.teamOvr}</span></div>
+      <div class="rep-bars">${['SHO','PAS','DRI','DEF','PHY'].map(k=>{
+        const g=STAT_GROUPS.find(x=>x.key===k),v=rp.avg[k];
+        return `<div class="rb"><div class="rb-k" style="color:${g.color}">${g.label}</div>
+          <div class="rb-bar"><div class="rb-fill" style="width:${v}%;background:${g.color}"></div></div>
+          <div class="rb-v" style="color:${g.color}">${v}</div></div>`}).join('')}</div>
+      <div class="rep-verdict">${esc(rp.verdict)}</div>
+      <div class="rep-cols">
+        <div class="rep-col"><div class="rep-t good">👍 강점</div>${rp.pros.map(t=>`<div class="rep-li">${esc(t)}</div>`).join('')}</div>
+        <div class="rep-col"><div class="rep-t bad">⚠️ 보완점</div>${rp.cons.map(t=>`<div class="rep-li">${esc(t)}</div>`).join('')}</div>
+      </div></div>`;
+  } else {
+    h+=`<div class="report"><div class="rep-h">📋 팀 총평</div><div style="font-size:12px;color:var(--text3)">선발 5명이 모두 채워지면 총평이 나와요. 능력치를 입력한 회원이 5명 이상 필요합니다.</div></div>`;
+  }
+  return h+'</div>';
 }
 function allOVR(id){
   const a=curAbil(id),foot=pstat(id).foot||'R';
