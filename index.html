@@ -238,6 +238,25 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .mini-table th{background:var(--bg3);padding:6px 4px;font-size:11px;color:var(--text2);white-space:nowrap}
 .mini-table td{padding:6px 4px;text-align:center;border-bottom:1px solid var(--border);color:var(--text2)}
 .sr-grp{border-left:3px solid;padding-left:9px;margin-bottom:12px}
+.sr-num{width:52px;padding:5px 6px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;font-weight:800;text-align:center;flex-shrink:0}
+.sr-num:focus{border-color:var(--accent);outline:none}
+/* 포메이션 */
+.form-wrap{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.pitch-box{flex:0 0 300px;max-width:300px}
+.pitch-svg{width:100%;height:auto;display:block;border-radius:10px}
+.pitch-slot{cursor:pointer}
+.slot-list{flex:1;min-width:250px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;align-content:start}
+.slot-card{background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:9px 10px}
+.slot-h{font-size:12px;font-weight:800;color:var(--text);margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.cand{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:7px;cursor:pointer;transition:.13s}
+.cand:hover{background:var(--bg-hover)}
+.cand.on{background:rgba(37,99,235,.12);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.cand-r{width:30px;font-size:10px;font-weight:800;color:var(--text3);flex-shrink:0}
+.rec{background:var(--green);color:#fff;padding:1px 5px;border-radius:8px;font-size:9px}
+.cand-n{flex:1;font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cand-o{font-size:14px;font-weight:900;flex-shrink:0}
+.form-btn{padding:5px 13px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text2);font-size:12px;font-weight:800;cursor:pointer}
+.form-btn.on{border-color:var(--accent);background:var(--accent);color:#fff}
 .sr-grp-h{font-size:12px;font-weight:800;margin-bottom:6px}
 .inj-row{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--bg)}
 .inj-memo{font-size:11px;color:var(--text3);margin-top:4px;background:var(--bg2);padding:4px 8px;border-radius:6px}
@@ -330,7 +349,7 @@ const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&g
 const todayDot=()=>{const d=new Date();return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')};
 
 // ═══ STATE ═══
-let S={members:[],resting:[],retired:[],trial:[],notjoined:[],sessions:[],attendance:{},reasons:{},dues:{},pstats:{},statLog:{},injuries:{}};
+let S={members:[],resting:[],retired:[],trial:[],notjoined:[],sessions:[],attendance:{},reasons:{},dues:{},pstats:{},statLog:{},injuries:{},lineup:{}};
 let viewYear=new Date().getFullYear(),viewMonth=new Date().getMonth(),currentTab='attendance';
 let editingMemberId=null,editingSessionId=null,reasonTarget=null;
 let selectedDates=[],venuePerDate={},calYear,calMonth;
@@ -354,7 +373,7 @@ let showAllMembers=false;
 function saveData(){if(saving)return;saving=true;dataRef.set(S).then(()=>{saving=false}).catch(e=>{console.error(e);saving=false})}
 dataRef.on('value',snap=>{
   const d=snap.val();
-  if(d){S.members=d.members||[];S.resting=d.resting||[];S.retired=d.retired||[];S.trial=d.trial||[];S.notjoined=d.notjoined||[];S.sessions=d.sessions||[];S.attendance=d.attendance||{};S.reasons=d.reasons||{};S.dues=d.dues||{};S.pstats=d.pstats||{};S.statLog=d.statLog||{};S.injuries=d.injuries||{}}
+  if(d){S.members=d.members||[];S.resting=d.resting||[];S.retired=d.retired||[];S.trial=d.trial||[];S.notjoined=d.notjoined||[];S.sessions=d.sessions||[];S.attendance=d.attendance||{};S.reasons=d.reasons||{};S.dues=d.dues||{};S.pstats=d.pstats||{};S.statLog=d.statLog||{};S.injuries=d.injuries||{};S.lineup=d.lineup||{}}
   render();
   const ls=document.getElementById('loadingScreen');if(ls)ls.classList.add('hidden');
 });
@@ -916,19 +935,128 @@ function curAbil(id){
 }
 function hasAbil(id){return logsOf(id).length>0}
 function groupAvg(a,g){const v=g.keys.map(k=>a[k]||0);return Math.round(v.reduce((s,x)=>s+x,0)/v.length)}
-// 포지션 종합(OVR): 가중 평균 + 주발 보정
-function posOVR(a,slotV,foot){
-  const sl=SLOTS.find(s=>s.v===slotV);if(!sl)return 0;
-  const w=POS_DEF[sl.base].w;
-  let sum=0,tot=0;
+// 기준 포지션 + 좌우 사이드로 OVR 계산 (포메이션·포지션 비교 공용)
+function ovrFor(a,base,side,foot){
+  const d=POS_DEF[base];if(!d)return 0;
+  const w=d.w;let sum=0,tot=0;
   Object.keys(w).forEach(k=>{sum+=(a[k]||0)*w[k];tot+=w[k]});
   let v=tot?sum/tot:0;
-  if(sl.foot){ // 아라 좌·우는 주발에 따라 보정
+  if(side){ // 좌·우 자리는 주발에 따라 보정
     if(foot==='B')v+=1;
-    else if(foot===sl.foot)v+=3;
+    else if(foot===side)v+=3;
     else v-=2;
   }
   return Math.max(0,Math.min(99,Math.round(v)));
+}
+function posOVR(a,slotV,foot){
+  const sl=SLOTS.find(s=>s.v===slotV);if(!sl)return 0;
+  return ovrFor(a,sl.base,sl.foot,foot);
+}
+// ── 포메이션 ──
+const FORMATIONS={
+  '1-2-1':{label:'1-2-1',desc:'다이아몬드 · 균형형',slots:[
+    {id:'PV',label:'피보',    base:'피보',    x:50,y:20},
+    {id:'AL',label:'아라(L)', base:'아라',side:'L',x:17,y:45},
+    {id:'AR',label:'아라(R)', base:'아라',side:'R',x:83,y:45},
+    {id:'FX',label:'픽소',    base:'픽소',    x:50,y:68},
+    {id:'GK',label:'골레이로',base:'골레이로',x:50,y:89}]},
+  '2-2':{label:'2-2',desc:'박스형 · 안정형',slots:[
+    {id:'FL',label:'전방(L)',base:'피보',side:'L',x:28,y:26},
+    {id:'FR',label:'전방(R)',base:'피보',side:'R',x:72,y:26},
+    {id:'DL',label:'후방(L)',base:'픽소',side:'L',x:28,y:63},
+    {id:'DR',label:'후방(R)',base:'픽소',side:'R',x:72,y:63},
+    {id:'GK',label:'골레이로',base:'골레이로',x:50,y:89}]}
+};
+function curForm(){const f=(S.lineup||{}).form;return FORMATIONS[f]?f:'1-2-1'}
+function picks(){return ((S.lineup||{}).picks||{})}
+function setForm(f){if(!S.lineup)S.lineup={};S.lineup={...S.lineup,form:f};saveData();render()}
+function slotOVR(mid,sl){return ovrFor(curAbil(mid),sl.base,sl.side,pstat(mid).foot||'R')}
+// 슬롯별 후보 (능력치 기록 있는 사람만)
+function candidates(sl){
+  return statMembers().filter(m=>hasAbil(m.id))
+    .map(m=>({m:m,ovr:slotOVR(m.id,sl),inj:activeInj(m.id).length>0}))
+    .sort((a,b)=>b.ovr-a.ovr);
+}
+function lineup(){
+  const pk=picks(),fm=FORMATIONS[curForm()],out={},used={};
+  const all=statMembers();
+  // 1) 수동 지정 먼저 고정
+  fm.slots.forEach(sl=>{const mid=pk[sl.id];if(mid&&all.some(m=>m.id===mid)&&!used[mid]){out[sl.id]=mid;used[mid]=1}});
+  // 2) 남은 자리는 남은 선수 중 최적 조합으로 채움 (밀려난 자리도 다시 채워짐)
+  const pairs=[];
+  fm.slots.forEach(sl=>{if(out[sl.id])return;
+    candidates(sl).forEach(c=>{if(!used[c.m.id])pairs.push({slot:sl.id,mid:c.m.id,ovr:c.ovr})})});
+  pairs.sort((a,b)=>b.ovr-a.ovr);
+  pairs.forEach(p=>{if(out[p.slot]===undefined&&!used[p.mid]){out[p.slot]=p.mid;used[p.mid]=1}});
+  return out;
+}
+function pickPlayer(slotId,mid){
+  if(!S.lineup)S.lineup={};
+  const pk={...picks()};
+  if(pk[slotId]===mid)delete pk[slotId];
+  else{Object.keys(pk).forEach(k=>{if(pk[k]===mid)delete pk[k]});pk[slotId]=mid}
+  S.lineup={...S.lineup,picks:pk};saveData();render();
+}
+function resetLineup(){if(!S.lineup)S.lineup={};S.lineup={...S.lineup,picks:{}};saveData();render()}
+// 세로형 풋살 경기장
+function pitchSVG(){
+  const fm=FORMATIONS[curForm()],lu=lineup(),W=300,H=520;
+  const L=22,R=W-22,T=22,B=H-22;
+  let s=`<svg viewBox="0 0 ${W} ${H}" class="pitch-svg">
+    <rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="#7d2b2b"/>
+    <rect x="${L}" y="${T}" width="${R-L}" height="${B-T}" fill="#3f8f3f"/>`;
+  for(let i=0;i<9;i++)s+=`<rect x="${L}" y="${T+i*(B-T)/9}" width="${R-L}" height="${(B-T)/18}" fill="#379037" opacity=".55"/>`;
+  s+=`<rect x="${L}" y="${T}" width="${R-L}" height="${B-T}" fill="none" stroke="#fff" stroke-width="2.5"/>
+    <line x1="${L}" y1="${H/2}" x2="${R}" y2="${H/2}" stroke="#fff" stroke-width="2.5"/>
+    <circle cx="${W/2}" cy="${H/2}" r="42" fill="none" stroke="#fff" stroke-width="2.5"/>
+    <circle cx="${W/2}" cy="${H/2}" r="3" fill="#fff"/>
+    <path d="M ${W/2-84},${B} A 84,84 0 0 1 ${W/2+84},${B}" fill="none" stroke="#fff" stroke-width="2.5"/>
+    <path d="M ${W/2-84},${T} A 84,84 0 0 0 ${W/2+84},${T}" fill="none" stroke="#fff" stroke-width="2.5"/>
+    <circle cx="${W/2}" cy="${B-58}" r="3" fill="#fff"/><circle cx="${W/2}" cy="${T+58}" r="3" fill="#fff"/>
+    <circle cx="${W/2}" cy="${B-104}" r="3" fill="#fff"/><circle cx="${W/2}" cy="${T+104}" r="3" fill="#fff"/>
+    <rect x="${W/2-32}" y="${B}" width="64" height="9" fill="none" stroke="#e8e8e8" stroke-width="2.5"/>
+    <rect x="${W/2-32}" y="${T-9}" width="64" height="9" fill="none" stroke="#e8e8e8" stroke-width="2.5"/>`;
+  fm.slots.forEach(sl=>{
+    const cx=L+(R-L)*sl.x/100, cy=T+(B-T)*sl.y/100;
+    const mid=lu[sl.id],m=mid?statMembers().find(x=>x.id===mid):null;
+    const ovr=m?slotOVR(m.id,sl):null;
+    const manual=picks()[sl.id]===mid&&mid;
+    s+=`<g class="pitch-slot" onclick="scrollSlot('${sl.id}')">
+      <circle cx="${cx}" cy="${cy}" r="21" fill="${m?'#0f2f5f':'rgba(0,0,0,.4)'}" stroke="${manual?'#fbbf24':'#fff'}" stroke-width="${manual?3:2}"/>
+      <text x="${cx}" y="${cy+6}" text-anchor="middle" font-size="16" font-weight="900" fill="#fff">${ovr!==null?ovr:'?'}</text>
+      <rect x="${cx-36}" y="${cy+25}" width="72" height="16" rx="8" fill="rgba(0,0,0,.55)"/>
+      <text x="${cx}" y="${cy+36}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">${m?esc(m.name):'미배치'}</text>
+      <text x="${cx}" y="${cy-27}" text-anchor="middle" font-size="9.5" font-weight="800" fill="#eaffea" stroke="#1c5c1c" stroke-width="2.2" paint-order="stroke">${esc(sl.label)}</text></g>`;
+  });
+  return s+'</svg>';
+}
+function scrollSlot(id){const el=document.getElementById('slot_'+id);if(el)el.scrollIntoView({behavior:'smooth',block:'center'})}
+function renderFormation(){
+  const fm=FORMATIONS[curForm()],lu=lineup();
+  const total=fm.slots.reduce((s,sl)=>s+(lu[sl.id]?slotOVR(lu[sl.id],sl):0),0);
+  const filled=fm.slots.filter(sl=>lu[sl.id]).length;
+  let h=`<div class="stat-box"><div class="box-h" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <span>포메이션 · 추천 라인업</span>
+    <div style="display:flex;gap:6px;align-items:center">
+      ${Object.keys(FORMATIONS).map(k=>`<button class="form-btn${curForm()===k?' on':''}" onclick="setForm('${k}')">${FORMATIONS[k].label}</button>`).join('')}
+      <button class="btn btn-sm btn-secondary" onclick="resetLineup()">자동 재배치</button>
+    </div></div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">${esc(fm.desc)} · 팀 평균 ${filled?Math.round(total/filled):0} · 오른쪽에서 선수를 누르면 그 자리에 배치돼요.</div>
+    <div class="form-wrap"><div class="pitch-box">${pitchSVG()}</div><div class="slot-list">`;
+  fm.slots.forEach(sl=>{
+    const cands=candidates(sl),cur=lu[sl.id];
+    h+=`<div class="slot-card" id="slot_${sl.id}"><div class="slot-h">${esc(sl.label)}</div>`;
+    if(!cands.length)h+='<div style="font-size:11px;color:var(--text3);padding:4px 0">능력치가 입력된 회원이 없어요.</div>';
+    else cands.slice(0,4).forEach((c,i)=>{
+      const on=cur===c.m.id;
+      h+=`<div class="cand${on?' on':''}" onclick="pickPlayer('${sl.id}','${c.m.id}')">
+        <span class="cand-r">${i===0?'<span class="rec">추천</span>':i+1}</span>
+        <span class="cand-n">${esc(c.m.name)}${c.inj?' <span class="inj-badge">🩹</span>':''}</span>
+        <span class="cand-o" style="color:${ovrColor(c.ovr)}">${c.ovr}</span></div>`;
+    });
+    h+='</div>';
+  });
+  return h+'</div></div></div>';
 }
 function allOVR(id){
   const a=curAbil(id),foot=pstat(id).foot||'R';
@@ -968,6 +1096,7 @@ function renderStats(){
   const cnt={};list.forEach(m=>{if(!hasAbil(m.id))return;const s=shownOVR(m.id).slot;cnt[s]=(cnt[s]||0)+1});
   const chips=SLOTS.filter(s=>cnt[s.v]).map(s=>`<span class="pos-chip">${s.v} ${cnt[s.v]}</span>`).join('');
   if(chips)h+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">${chips}</div>`;
+  h+=renderFormation();
   h+='<div class="fut-grid">';
   list.forEach(m=>{
     const o=shownOVR(m.id),has=hasAbil(m.id),a=curAbil(m.id);
@@ -1144,8 +1273,8 @@ function openStatRecord(id){
     g.keys.forEach(k=>{
       const v=exist?(exist[k]||0):(a[k]||0);
       h+=`<div class="sr-row"><label>${k}</label>
-        <input type="range" min="0" max="99" value="${v}" id="sr_${k}" oninput="document.getElementById('srv_${k}').textContent=this.value">
-        <span id="srv_${k}" class="sr-val">${v}</span></div>`;
+        <input type="range" min="0" max="99" value="${v}" id="sr_${k}" oninput="syncStat('${k}',this.value)">
+        <input type="number" min="0" max="99" value="${v}" id="srn_${k}" class="sr-num" oninput="syncStat('${k}',this.value,1)" onfocus="this.select()"></div>`;
     });
     h+='</div>';
   });
@@ -1156,12 +1285,20 @@ function openStatRecord(id){
   document.getElementById('statForm').innerHTML=h;
   openModal('statModal');
 }
-function fillAll(v){ABIL.forEach(k=>{const e=document.getElementById('sr_'+k);if(e){e.value=v;document.getElementById('srv_'+k).textContent=v}})}
+function syncStat(k,val,fromNum){
+  let v=parseInt(val,10);if(isNaN(v))v=0;
+  v=Math.max(0,Math.min(99,v));
+  const r=document.getElementById('sr_'+k),n=document.getElementById('srn_'+k);
+  if(r)r.value=v;
+  if(n&&fromNum!==1)n.value=v;
+  else if(n&&String(n.value).length>2)n.value=v;
+}
+function fillAll(v){ABIL.forEach(k=>{const e=document.getElementById('sr_'+k),n=document.getElementById('srn_'+k);if(e)e.value=v;if(n)n.value=v})}
 function saveStatRecord(id){
   const ym=document.getElementById('srYm').value.trim();
   if(!ym){alert('기록 시점을 입력해주세요.');return}
   const rec={ym:ym,memo:document.getElementById('srMemo').value.trim()};
-  ABIL.forEach(k=>{const e=document.getElementById('sr_'+k);rec[k]=e?(parseInt(e.value,10)||0):0});
+  ABIL.forEach(k=>{const e=document.getElementById('srn_'+k)||document.getElementById('sr_'+k);let v=e?parseInt(e.value,10):0;if(isNaN(v))v=0;rec[k]=Math.max(0,Math.min(99,v))});
   if(!S.statLog)S.statLog={};
   const arr=[...((S.statLog||{})[id]||[])].filter(r=>r.ym!==ym);
   arr.push(rec);S.statLog[id]=arr;
