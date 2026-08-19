@@ -195,6 +195,32 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .pick-opt.d-carry{color:#d97706;border-color:rgba(217,119,6,.45)}
 .pick-opt.d-rest{color:var(--text3)}
 .hide-dues-memo .dues-memo{display:none!important}
+/* ── 회원 스탯 ── */
+.stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+.stat-box .box-h{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px}
+.abil-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.abil-name{width:52px;font-size:12px;font-weight:700;color:var(--text2);flex-shrink:0}
+.abil-bar{flex:1;height:9px;background:var(--bg3);border-radius:6px;overflow:hidden}
+.abil-fill{height:100%;background:linear-gradient(90deg,var(--accent),#60a5fa);border-radius:6px;transition:width .3s}
+.abil-val{width:16px;text-align:right;font-size:12px;font-weight:800;color:var(--accent)}
+.mini-table{width:100%;border-collapse:collapse;font-size:12px}
+.mini-table th{background:var(--bg3);padding:6px 4px;font-size:11px;color:var(--text2);white-space:nowrap}
+.mini-table td{padding:6px 4px;text-align:center;border-bottom:1px solid var(--border);color:var(--text2)}
+.inj-row{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--bg)}
+.inj-memo{font-size:11px;color:var(--text3);margin-top:4px;background:var(--bg2);padding:4px 8px;border-radius:6px}
+.inj-badge{font-size:10px;background:rgba(225,29,72,.12);color:#e11d48;padding:2px 6px;border-radius:10px;margin-left:4px;font-weight:700}
+.inj-now{font-size:10px;background:rgba(225,29,72,.12);color:#e11d48;padding:2px 6px;border-radius:10px;margin-left:4px}
+.inj-done{font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:10px;margin-left:4px}
+.sev-경미{font-size:10px;background:var(--bg3);color:var(--text3);padding:2px 6px;border-radius:10px;margin-left:4px}
+.sev-보통{font-size:10px;background:rgba(217,119,6,.12);color:#d97706;padding:2px 6px;border-radius:10px;margin-left:4px}
+.sev-심각{font-size:10px;background:rgba(225,29,72,.15);color:#e11d48;padding:2px 6px;border-radius:10px;margin-left:4px;font-weight:700}
+.sr-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.sr-row label{width:52px;font-size:12px;font-weight:700;color:var(--text2);flex-shrink:0}
+.sr-row input[type=range]{flex:1;accent-color:var(--accent)}
+.sr-val{width:16px;text-align:right;font-size:13px;font-weight:800;color:var(--accent)}
+.obs-ta{width:100%;min-height:80px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;resize:vertical}
+.pos-chip{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;background:var(--accent-bg,rgba(37,99,235,.1));color:var(--accent);border:1px solid rgba(37,99,235,.25)}
+.pos-chip.pos-none{background:var(--bg3);color:var(--text3);border-color:var(--border)}
 .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s}
 .loading-screen.hidden{opacity:0;pointer-events:none}
 .loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px}
@@ -220,12 +246,14 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
   <div id="tab-trial" class="tab-content fade-in" style="display:none"></div>
   <div id="tab-all" class="tab-content fade-in" style="display:none"></div>
   <div id="tab-dues" class="tab-content fade-in" style="display:none"></div>
+  <div id="tab-stats" class="tab-content fade-in" style="display:none"></div>
 </div>
 <div class="modal-overlay" id="memberModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3 id="memberModalTitle">회원 추가</h3><button class="modal-close" onclick="closeModal('memberModal')">✕</button></div><div id="memberForm"></div></div></div>
 <div class="modal-overlay" id="sessionModal"><div class="modal" onclick="event.stopPropagation()" style="width:520px"><div class="modal-title"><h3 id="sessionModalTitle">일정 추가</h3><button class="modal-close" onclick="closeModal('sessionModal')">✕</button></div><div id="sessionForm"></div></div></div>
 <div class="modal-overlay" id="detailModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3>회원 상세 정보</h3><button class="modal-close" onclick="closeModal('detailModal')">✕</button></div><div id="detailContent"></div></div></div>
 <div class="modal-overlay" id="restModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3 id="restModalTitle">휴식 처리</h3><button class="modal-close" onclick="closeModal('restModal')">✕</button></div><div id="restForm"></div></div></div>
 <div class="modal-overlay" id="retireModal"><div class="modal" onclick="event.stopPropagation()"><div class="modal-title"><h3>탈퇴 처리</h3><button class="modal-close" onclick="closeModal('retireModal')">✕</button></div><div id="retireForm"></div></div></div>
+<div class="modal-overlay" id="statModal"><div class="modal" onclick="event.stopPropagation()" style="width:340px;max-height:88vh;overflow-y:auto"><div class="modal-title"><h3 id="statModalTitle">스탯</h3><button class="modal-close" onclick="closeModal('statModal')">✕</button></div><div id="statForm"></div></div></div>
 <div class="modal-overlay" id="duesModal"><div class="modal" onclick="event.stopPropagation()" style="width:300px"><div class="modal-title"><h3 id="duesModalTitle">회비</h3><button class="modal-close" onclick="closeModal('duesModal')">✕</button></div><div id="duesForm"></div></div></div>
 <div class="reason-popup" id="reasonPopup">
   <div id="attPickPane">
@@ -269,7 +297,7 @@ const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&g
 const todayDot=()=>{const d=new Date();return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')};
 
 // ═══ STATE ═══
-let S={members:[],resting:[],retired:[],trial:[],notjoined:[],sessions:[],attendance:{},reasons:{},dues:{}};
+let S={members:[],resting:[],retired:[],trial:[],notjoined:[],sessions:[],attendance:{},reasons:{},dues:{},pstats:{},statLog:{},injuries:{}};
 let viewYear=new Date().getFullYear(),viewMonth=new Date().getMonth(),currentTab='attendance';
 let editingMemberId=null,editingSessionId=null,reasonTarget=null;
 let selectedDates=[],venuePerDate={},calYear,calMonth;
@@ -293,11 +321,17 @@ let showAllMembers=false;
 function saveData(){if(saving)return;saving=true;dataRef.set(S).then(()=>{saving=false}).catch(e=>{console.error(e);saving=false})}
 dataRef.on('value',snap=>{
   const d=snap.val();
-  if(d){S.members=d.members||[];S.resting=d.resting||[];S.retired=d.retired||[];S.trial=d.trial||[];S.notjoined=d.notjoined||[];S.sessions=d.sessions||[];S.attendance=d.attendance||{};S.reasons=d.reasons||{};S.dues=d.dues||{}}
+  if(d){S.members=d.members||[];S.resting=d.resting||[];S.retired=d.retired||[];S.trial=d.trial||[];S.notjoined=d.notjoined||[];S.sessions=d.sessions||[];S.attendance=d.attendance||{};S.reasons=d.reasons||{};S.dues=d.dues||{};S.pstats=d.pstats||{};S.statLog=d.statLog||{};S.injuries=d.injuries||{}}
   render();
   const ls=document.getElementById('loadingScreen');if(ls)ls.classList.add('hidden');
 });
 const connRef=db.ref('.info/connected');
+// 미니홈피(wavefc_site)의 능력치 — 읽기 전용. 여기서는 절대 쓰지 않습니다.
+let SITE_STATS={};
+db.ref('wavefc_site/member_stats').on('value',snap=>{
+  SITE_STATS=snap.val()||{};
+  if(currentTab==='stats')render();
+});
 connRef.on('value',snap=>{const el=document.getElementById('connStatus'),txt=document.getElementById('connText');if(snap.val()===true){el.className='conn-status conn-online';txt.textContent='실시간 연결됨'}else{el.className='conn-status conn-offline';txt.textContent='연결 끊김'}});
 
 // ═══ THEME ═══
@@ -305,9 +339,9 @@ function toggleTheme(){const dk=document.documentElement.getAttribute('data-them
 (function(){try{if(localStorage.getItem('wavefc_theme')==='dark'){document.documentElement.setAttribute('data-theme','dark');document.querySelector('.theme-toggle').textContent='☀️'}}catch(e){}})();
 
 // ═══ TABS ═══
-const TABS=[{key:'attendance',label:'📋 출석체크'},{key:'active',label:'⚽ 활동회원'},{key:'resting',label:'😴 휴식회원'},{key:'retired',label:'📁 탈퇴회원'},{key:'trial',label:'🌟 체험회원'},{key:'all',label:'👥 회원관리'},{key:'dues',label:'💰 회비관리'}];
+const TABS=[{key:'attendance',label:'📋 출석체크'},{key:'active',label:'⚽ 활동회원'},{key:'resting',label:'😴 휴식회원'},{key:'retired',label:'📁 탈퇴회원'},{key:'trial',label:'🌟 체험회원'},{key:'all',label:'👥 회원관리'},{key:'dues',label:'💰 회비관리'},{key:'stats',label:'📈 회원 스탯'}];
 function renderTabs(){document.getElementById('tabBar').innerHTML=TABS.map(t=>`<button class="tab-btn ${currentTab===t.key?'active':''}" onclick="switchTab('${t.key}')">${t.label}</button>`).join('')}
-function switchTab(t){currentTab=t;TABS.forEach(x=>{const el=document.getElementById('tab-'+x.key);if(el)el.style.display=x.key===t?'':'none'});renderTabs();render()}
+function switchTab(t){if(t!=='stats')statView=null;currentTab=t;TABS.forEach(x=>{const el=document.getElementById('tab-'+x.key);if(el)el.style.display=x.key===t?'':'none'});renderTabs();render()}
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',()=>el.classList.remove('open'))});
@@ -389,6 +423,7 @@ function render(){
   else if(currentTab==='trial')renderTrial();
   else if(currentTab==='all')renderAll();
   else if(currentTab==='dues')renderDues();
+  else if(currentTab==='stats')renderStats();
 }
 
 // 출석표에 표시할 회원 목록 (renderAtt / exportAtt 공용)
@@ -501,7 +536,7 @@ function renderActive(){
         <div class="member-sub">가입: ${esc(m.joinDate)||'-'}${m.phone?' · '+esc(m.phone):''}${m.route?' · 경로: '+esc(m.route):''}</div>
       </div></div>
       <div class="member-actions">
-        <button class="dues-btn ${DL.cls}" title="${ym} 회비" onclick="openDuesPicker('${m.id}','${ym}')">${esc(DL.txt)}</button>
+        ${joinedByMonth(m)?`<button class="dues-btn ${DL.cls}" title="${ym} 회비" onclick="openDuesPicker('${m.id}','${ym}')">${esc(DL.txt)}</button>`:`<span class="dues-btn d-none" style="opacity:.5;cursor:default" title="${ym}에는 아직 가입 전">가입전</span>`}
         <button class="btn btn-secondary btn-sm" onclick="openEditMember('${m.id}')">수정</button>
         <button class="btn btn-warning btn-sm" onclick="openRestProcess('${m.id}')">휴식</button>
         <button class="btn btn-danger btn-sm" onclick="openRetireProcess('${m.id}')">탈퇴</button>
@@ -796,15 +831,309 @@ function exportAll(){
 // 회비
 function exportDues(){
   const ym=ymStamp();
-  const list=[...(S.members||[]).map(m=>({...m,_grp:'활동'})),
-              ...(S.resting||[]).map(m=>({...m,_grp:'휴식'})),
-              ...(S.trial||[]).map(m=>({...m,_grp:'체험'}))].sort(korSort);
+  const list=duesMemberList();
   const rows=[['번호','이름','등번호','구분','회비 상태','금액','사유']];
   list.forEach((m,i)=>{
     const d=duesGet(m.id,ym)||{},st=duesState(d.st);
     rows.push([i+1,m.name,m.number||'',m._grp,st?st.label:'미체크',d.amt||'',d.memo||'']);
   });
   downloadCSV(`WAVE_회비_${ym}.csv`,rows);
+}
+// ═══ 회원 스탯 ═══
+const ABIL=['드리블','패스','슛파워','결정력','속력','피지컬','수비','밸런스','움직임'];
+const POSITIONS=['미정','피보','아라','픽소','골키퍼'];
+const CONDS=[{v:'good',label:'좋음',c:'#16a34a'},{v:'normal',label:'보통',c:'#0284c7'},
+             {v:'care',label:'주의',c:'#d97706'},{v:'injured',label:'부상중',c:'#e11d48'}];
+const SEVERITY=['경미','보통','심각'];
+let statView=null; // null=목록, memberId=상세
+
+function statMembers(){
+  return [...(S.members||[]).map(m=>({...m,_grp:'활동'})),
+          ...(S.resting||[]).map(m=>({...m,_grp:'휴식'})),
+          ...(S.trial||[]).map(m=>({...m,_grp:'체험'}))].sort(korSort);
+}
+function pstat(id){return (S.pstats||{})[id]||{}}
+function logsOf(id){return [...((S.statLog||{})[id]||[])].sort((a,b)=>String(a.ym).localeCompare(String(b.ym)))}
+function injOf(id){return [...((S.injuries||{})[id]||[])].sort((a,b)=>dnum(b.start)-dnum(a.start))}
+function activeInj(id){return injOf(id).filter(x=>!x.end)}
+// 미니홈피 능력치(이름 기준) + 우리 기록 중 최신값을 합쳐 현재값 산출
+function curAbil(m){
+  const site=SITE_STATS[m.name]||{};
+  const lg=logsOf(m.id),last=lg.length?lg[lg.length-1]:null;
+  const out={};
+  ABIL.forEach(k=>{out[k]=(last&&typeof last[k]==='number')?last[k]:(typeof site[k]==='number'?site[k]:0)});
+  return out;
+}
+function abilTotal(o){return ABIL.reduce((s,k)=>s+(o[k]||0),0)}
+function condOf(id){const c=pstat(id).cond;return CONDS.find(x=>x.v===c)||null}
+
+function renderStats(){
+  if(statView){renderStatDetail(statView);return}
+  const list=statMembers();
+  let h=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:6px">
+    <h2 style="font-size:17px;font-weight:700;color:var(--text)">회원 스탯 (${list.length}명)</h2>
+    <div style="display:flex;gap:8px">${xbtn('exportStats()')}</div></div>
+  <div style="font-size:12px;color:var(--text3);margin-bottom:14px">이름을 누르면 개인별 변화 추이와 부상 이력을 볼 수 있어요. 능력치는 미니홈피와 연동됩니다.</div>`;
+  const inj=list.filter(m=>activeInj(m.id).length).length;
+  h+=`<div class="stats-grid" style="margin-bottom:18px">
+    <div class="stat-card"><div class="stat-label">📈 기록된 회원</div><div class="stat-value">${list.filter(m=>logsOf(m.id).length).length}명</div></div>
+    <div class="stat-card"><div class="stat-label">🩹 부상 중</div><div class="stat-value" style="color:var(--red)">${inj}명</div></div>
+    <div class="stat-card"><div class="stat-label">⚽ 평균 종합</div><div class="stat-value">${list.length?Math.round(list.reduce((s,m)=>s+abilTotal(curAbil(m)),0)/list.length):0}</div></div>
+  </div>`;
+  // 포지션 분포
+  const posCnt={};list.forEach(m=>{const p=pstat(m.id).pos||'미정';posCnt[p]=(posCnt[p]||0)+1});
+  const posKeys=Object.keys(posCnt).sort((a,b)=>{const i=POSITIONS.indexOf(a),j=POSITIONS.indexOf(b);return (i<0?99:i)-(j<0?99:j)});
+  h+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+    ${posKeys.map(p=>`<span class="pos-chip${p==='미정'?' pos-none':''}">${esc(p)} ${posCnt[p]}</span>`).join('')}</div>
+  <div class="member-list">`;
+  list.forEach(m=>{
+    const a=curAbil(m),tot=abilTotal(a),cd=condOf(m.id),ps=pstat(m.id),ai=activeInj(m.id);
+    const lg=logsOf(m.id);
+    let delta='';
+    if(lg.length>1){
+      const d=abilTotal(lg[lg.length-1])-abilTotal(lg[lg.length-2]);
+      delta=d>0?`<span style="color:var(--green);font-weight:800">▲${d}</span>`:d<0?`<span style="color:var(--red);font-weight:800">▼${-d}</span>`:`<span style="color:var(--text3)">–</span>`;
+    }
+    h+=`<div class="member-card" style="cursor:pointer" onclick="openStatDetail('${m.id}')">
+      <div class="member-info"><div class="member-avatar">${esc(m.number)||'-'}</div><div>
+        <div class="member-name">${m.role==='exec'?'👑 ':''}${esc(m.name)}
+          ${m._grp!=='활동'?`<span class="${m._grp==='휴식'?'rest-badge':'trial-badge'}" style="margin-left:4px">${m._grp}</span>`:''}
+          ${ai.length?`<span class="inj-badge">🩹 ${esc(ai[0].part||'부상')}</span>`:''}</div>
+        <div class="member-sub">${esc(ps.pos||'포지션 미정')}${cd?` · <span style="color:${cd.c};font-weight:700">${cd.label}</span>`:''}${lg.length?` · 기록 ${lg.length}회`:' · 기록 없음'}</div>
+      </div></div>
+      <div class="member-actions" style="align-items:center">
+        <div style="text-align:right"><div style="font-size:18px;font-weight:800;color:var(--accent)">${tot}</div>
+        <div style="font-size:10px;color:var(--text3)">종합 ${delta}</div></div>
+        <span style="color:var(--text3);font-size:18px;margin-left:6px">›</span>
+      </div></div>`;
+  });
+  h+='</div>';
+  const el=document.getElementById('tab-stats');if(el)el.innerHTML=h;
+}
+function openStatDetail(id){statView=id;render();window.scrollTo(0,0)}
+function closeStatDetail(){statView=null;render()}
+
+function renderStatDetail(id){
+  const m=statMembers().find(x=>x.id===id);
+  if(!m){statView=null;renderStats();return}
+  const a=curAbil(m),lg=logsOf(id),ps=pstat(id),cd=condOf(id),injs=injOf(id);
+  const site=SITE_STATS[m.name]||{};
+  const hasSite=ABIL.some(k=>typeof site[k]==='number');
+  let h=`<button class="btn btn-secondary btn-sm" onclick="closeStatDetail()" style="margin-bottom:14px">← 목록</button>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+    <div><h2 style="font-size:20px;font-weight:800;color:var(--text)">${m.role==='exec'?'👑 ':''}${esc(m.name)}
+      <span style="font-size:13px;color:var(--text3);font-weight:600">#${esc(m.number)||'-'}</span></h2>
+      <div style="font-size:12px;color:var(--text3);margin-top:3px">가입 ${esc(m.joinDate)||'-'} · ${esc(ps.pos||'포지션 미정')}${cd?` · <span style="color:${cd.c};font-weight:700">컨디션 ${cd.label}</span>`:''}</div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-secondary" onclick="openPosCond('${id}')">포지션·컨디션</button>
+      <button class="btn btn-sm btn-primary" onclick="openStatRecord('${id}')">📈 능력치 기록</button>
+    </div></div>`;
+  // 능력치 바
+  h+=`<div class="stat-box"><div class="box-h">능력치 <span style="font-size:11px;color:var(--text3);font-weight:600">(5점 만점 · 종합 ${abilTotal(a)}/45)</span></div>`;
+  if(!hasSite&&!lg.length)h+='<div style="color:var(--text3);font-size:12px;padding:6px 0">아직 기록이 없어요. [능력치 기록]으로 시작해보세요.</div>';
+  ABIL.forEach(k=>{
+    const v=a[k]||0;
+    h+=`<div class="abil-row"><div class="abil-name">${k}</div>
+      <div class="abil-bar"><div class="abil-fill" style="width:${v/5*100}%"></div></div>
+      <div class="abil-val">${v}</div></div>`;
+  });
+  h+=`</div>`;
+  // 변화 추이
+  h+=`<div class="stat-box"><div class="box-h">변화 추이 ${lg.length?`<span style="font-size:11px;color:var(--text3);font-weight:600">(${lg.length}회 기록)</span>`:''}</div>`;
+  if(lg.length<1)h+='<div style="color:var(--text3);font-size:12px;padding:6px 0">기록이 쌓이면 월별 변화를 보여드릴게요.</div>';
+  else{
+    h+=trendSVG(lg);
+    h+=`<div class="table-wrap" style="margin-top:12px"><table class="mini-table"><thead><tr><th>시점</th>${ABIL.map(k=>`<th>${k}</th>`).join('')}<th>종합</th><th></th></tr></thead><tbody>`;
+    lg.slice().reverse().forEach((r,i)=>{
+      const idx=lg.length-1-i, prev=idx>0?lg[idx-1]:null;
+      const dt=prev?abilTotal(r)-abilTotal(prev):null;
+      h+=`<tr><td style="font-weight:700">${esc(r.ym)}</td>${ABIL.map(k=>{
+        const pv=prev?prev[k]:null,cv=r[k]||0;
+        const mk=(pv!==null&&cv!==pv)?`<span style="color:${cv>pv?'var(--green)':'var(--red)'};font-size:9px">${cv>pv?'▲':'▼'}</span>`:'';
+        return `<td>${cv}${mk}</td>`}).join('')}
+        <td style="font-weight:800">${abilTotal(r)}${dt!==null?` <span style="font-size:10px;color:${dt>0?'var(--green)':dt<0?'var(--red)':'var(--text3)'}">${dt>0?'+'+dt:dt}</span>`:''}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="delStatLog('${id}','${esc(r.ym)}')">삭제</button></td></tr>`;
+      if(r.memo)h+=`<tr><td colspan="${ABIL.length+3}" style="font-size:11px;color:var(--text3);text-align:left;padding-left:10px">📝 ${esc(r.memo)}</td></tr>`;
+    });
+    h+='</tbody></table></div>';
+  }
+  h+='</div>';
+  // 부상 이력
+  h+=`<div class="stat-box"><div class="box-h" style="display:flex;justify-content:space-between;align-items:center">
+    <span>부상 이력 ${injs.length?`<span style="font-size:11px;color:var(--text3);font-weight:600">(${injs.length}건)</span>`:''}</span>
+    <button class="btn btn-sm btn-secondary" onclick="openInjury('${id}')">+ 부상 기록</button></div>`;
+  if(!injs.length)h+='<div style="color:var(--text3);font-size:12px;padding:6px 0">기록된 부상이 없어요.</div>';
+  else injs.forEach((x,i)=>{
+    const days=x.end?Math.round((new Date(x.end.replace(/\./g,'-'))-new Date(x.start.replace(/\./g,'-')))/86400000):null;
+    h+=`<div class="inj-row"><div style="flex:1">
+      <div style="font-weight:700;color:var(--text)">${esc(x.part||'-')}
+        <span class="sev-${esc(x.sev||'경미')}">${esc(x.sev||'경미')}</span>
+        ${x.end?'<span class="inj-done">복귀 완료</span>':'<span class="inj-now">회복 중</span>'}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">${esc(x.start)||'-'} ~ ${esc(x.end)||'미정'}${days!==null?` (${days}일)`:''}</div>
+      ${x.memo?`<div class="inj-memo">${esc(x.memo)}</div>`:''}
+    </div><div style="display:flex;gap:6px">
+      ${x.end?'':`<button class="btn btn-primary btn-sm" onclick="closeInjury('${id}',${i})">복귀</button>`}
+      <button class="btn btn-secondary btn-sm" onclick="openInjury('${id}',${i})">수정</button>
+      <button class="btn btn-danger btn-sm" onclick="delInjury('${id}',${i})">삭제</button>
+    </div></div>`;
+  });
+  h+='</div>';
+  // 관찰 메모
+  h+=`<div class="stat-box"><div class="box-h">관찰 메모</div>
+    <textarea id="obsMemo" class="obs-ta" placeholder="예: 왼발 패스 정확도 개선됨. 수비 시 위치 선정 코칭 필요.">${esc(ps.note||'')}</textarea>
+    <div style="text-align:right;margin-top:8px"><button class="btn btn-sm btn-primary" onclick="saveObs('${id}')">메모 저장</button></div></div>`;
+  const el=document.getElementById('tab-stats');if(el)el.innerHTML=h;
+}
+// 종합 점수 추이 미니 차트
+function trendSVG(lg){
+  const pts=lg.map(r=>abilTotal(r));
+  if(pts.length<2)return'<div style="font-size:12px;color:var(--text3)">2회 이상 기록되면 그래프가 나타나요.</div>';
+  const W=560,H=110,pad=26,max=45;
+  const step=(W-pad*2)/(pts.length-1);
+  const xy=pts.map((v,i)=>[pad+step*i,H-pad-(v/max)*(H-pad*1.4)]);
+  const line=xy.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;max-width:${W}px">
+    <line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="var(--border)" stroke-width="1"/>
+    <polyline points="${line}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  xy.forEach((p,i)=>{
+    s+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="var(--accent)"/>
+        <text x="${p[0].toFixed(1)}" y="${(p[1]-9).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--text2)">${pts[i]}</text>
+        <text x="${p[0].toFixed(1)}" y="${H-pad+13}" text-anchor="middle" font-size="9" fill="var(--text3)">${esc(lg[i].ym)}</text>`;
+  });
+  return s+'</svg>';
+}
+// ── 능력치 기록 ──
+function openStatRecord(id){
+  const m=statMembers().find(x=>x.id===id);if(!m)return;
+  const a=curAbil(m),ym=ymStamp();
+  const exist=logsOf(id).find(r=>r.ym===ym);
+  document.getElementById('statModalTitle').textContent=m.name+' 능력치 기록';
+  let h=`<div class="field"><label>기록 시점</label><input id="srYm" value="${exist?exist.ym:ym}" placeholder="2026-08"></div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:8px">0~5 사이로 입력하세요. ${exist?'이미 같은 시점 기록이 있어 덮어씁니다.':'현재값이 채워져 있어요.'}</div>`;
+  ABIL.forEach(k=>{
+    h+=`<div class="sr-row"><label>${k}</label>
+      <input type="range" min="0" max="5" step="1" value="${exist?(exist[k]||0):(a[k]||0)}" oninput="document.getElementById('srv_${k}').textContent=this.value" id="sr_${k}">
+      <span id="srv_${k}" class="sr-val">${exist?(exist[k]||0):(a[k]||0)}</span></div>`;
+  });
+  h+=`<div class="field" style="margin-top:10px"><label>메모 (선택)</label><input id="srMemo" value="${exist?esc(exist.memo||''):''}" placeholder="예: 체력 훈련 후 향상"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+    <button class="btn btn-secondary" onclick="closeModal('statModal')">취소</button>
+    <button class="btn btn-primary" onclick="saveStatRecord('${id}')">저장</button></div>`;
+  document.getElementById('statForm').innerHTML=h;
+  openModal('statModal');
+}
+function saveStatRecord(id){
+  const ym=document.getElementById('srYm').value.trim();
+  if(!ym){alert('기록 시점을 입력해주세요.');return}
+  const rec={ym:ym,memo:document.getElementById('srMemo').value.trim()};
+  ABIL.forEach(k=>{rec[k]=parseInt(document.getElementById('sr_'+k).value,10)||0});
+  if(!S.statLog)S.statLog={};
+  const arr=[...((S.statLog||{})[id]||[])].filter(r=>r.ym!==ym);
+  arr.push(rec);
+  S.statLog[id]=arr;
+  saveData();closeModal('statModal');render();
+}
+function delStatLog(id,ym){
+  if(!confirm(ym+' 기록을 삭제할까요?'))return;
+  S.statLog[id]=((S.statLog||{})[id]||[]).filter(r=>r.ym!==ym);
+  saveData();render();
+}
+// ── 포지션·컨디션 ──
+function openPosCond(id){
+  const m=statMembers().find(x=>x.id===id);if(!m)return;
+  const ps=pstat(id);
+  document.getElementById('statModalTitle').textContent=m.name+' 포지션·컨디션';
+  const posOpts=POSITIONS.includes(ps.pos)||!ps.pos?POSITIONS:[...POSITIONS,ps.pos];
+  let h=`<div class="field"><label>포지션</label><select id="pcPos">${posOpts.map(p=>`<option${ps.pos===p?' selected':''}>${p}</option>`).join('')}</select></div>
+  <div class="field"><label>컨디션</label><div class="pick-list" style="max-height:none">`;
+  CONDS.forEach(c=>{h+=`<button class="pick-opt${ps.cond===c.v?' sel':''}" style="color:${c.c}" onclick="setCond('${id}','${c.v}')">${c.label}${ps.cond===c.v?' ✓':''}</button>`});
+  h+=`</div></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+    <button class="btn btn-secondary" onclick="closeModal('statModal')">닫기</button>
+    <button class="btn btn-primary" onclick="savePos('${id}')">포지션 저장</button></div>`;
+  document.getElementById('statForm').innerHTML=h;
+  openModal('statModal');
+}
+function setCond(id,v){
+  if(!S.pstats)S.pstats={};
+  S.pstats[id]={...pstat(id),cond:v};
+  saveData();openPosCond(id);
+}
+function savePos(id){
+  if(!S.pstats)S.pstats={};
+  S.pstats[id]={...pstat(id),pos:document.getElementById('pcPos').value};
+  saveData();closeModal('statModal');render();
+}
+function saveObs(id){
+  if(!S.pstats)S.pstats={};
+  S.pstats[id]={...pstat(id),note:document.getElementById('obsMemo').value.trim()};
+  saveData();render();
+}
+// ── 부상 ──
+function openInjury(id,idx){
+  const m=statMembers().find(x=>x.id===id);if(!m)return;
+  const list=injOf(id),x=(idx===undefined?{}:list[idx])||{};
+  document.getElementById('statModalTitle').textContent=m.name+(idx===undefined?' 부상 기록':' 부상 수정');
+  const h=`<div class="field"><label>부위</label><input id="inPart" value="${esc(x.part||'')}" placeholder="예: 왼쪽 발목"></div>
+  <div class="field"><label>정도</label><select id="inSev">${SEVERITY.map(s=>`<option${x.sev===s?' selected':''}>${s}</option>`).join('')}</select></div>
+  <div class="field"><label>발생일</label><input id="inStart" value="${esc(x.start||todayDot())}" placeholder="2026.08.18"></div>
+  <div class="field"><label>복귀일 (미정이면 비워두세요)</label><input id="inEnd" value="${esc(x.end||'')}" placeholder="2026.09.01"></div>
+  <div class="field"><label>메모</label><input id="inMemo" value="${esc(x.memo||'')}" placeholder="예: 착지 중 접질림, 2주 안정 권고"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+    <button class="btn btn-secondary" onclick="closeModal('statModal')">취소</button>
+    <button class="btn btn-primary" onclick="saveInjury('${id}',${idx===undefined?'undefined':idx})">저장</button></div>`;
+  document.getElementById('statForm').innerHTML=h;
+  openModal('statModal');
+}
+function saveInjury(id,idx){
+  const part=document.getElementById('inPart').value.trim();
+  if(!part){alert('부위를 입력해주세요.');return}
+  const rec={part:part,sev:document.getElementById('inSev').value,
+    start:document.getElementById('inStart').value.trim()||todayDot(),
+    end:document.getElementById('inEnd').value.trim(),
+    memo:document.getElementById('inMemo').value.trim()};
+  if(!S.injuries)S.injuries={};
+  const list=injOf(id);
+  if(idx===undefined||idx===null)list.push(rec);else list[idx]=rec;
+  S.injuries[id]=list;
+  // 부상 중이면 컨디션도 자동으로 맞춰줌
+  if(!rec.end){if(!S.pstats)S.pstats={};S.pstats[id]={...pstat(id),cond:'injured'}}
+  saveData();closeModal('statModal');render();
+}
+function closeInjury(id,idx){
+  const list=injOf(id);if(!list[idx])return;
+  const d=prompt('복귀일을 입력해주세요.',todayDot());
+  if(d===null)return;
+  list[idx]={...list[idx],end:d.trim()||todayDot()};
+  S.injuries[id]=list;
+  if(!activeInj(id).length){S.pstats[id]={...pstat(id),cond:'normal'}}
+  saveData();render();
+}
+function delInjury(id,idx){
+  const list=injOf(id);if(!list[idx]||!confirm('이 부상 기록을 삭제할까요?'))return;
+  list.splice(idx,1);S.injuries[id]=list;saveData();render();
+}
+// 내보내기
+function exportStats(){
+  const rows=[['이름','등번호','구분','포지션','컨디션',...ABIL,'종합','기록 횟수','부상 중','최근 부상','관찰 메모']];
+  statMembers().forEach(m=>{
+    const a=curAbil(m),ps=pstat(m.id),cd=condOf(m.id),ai=activeInj(m.id),ij=injOf(m.id);
+    rows.push([m.name,m.number||'',m._grp,ps.pos||'',cd?cd.label:'',...ABIL.map(k=>a[k]||0),
+      abilTotal(a),logsOf(m.id).length,ai.length?'Y':'',ij.length?`${ij[0].part}(${ij[0].start}~${ij[0].end||'미정'})`:'',ps.note||'']);
+  });
+  rows.push([]);
+  rows.push(['── 능력치 변화 이력 ──']);
+  rows.push(['이름','시점',...ABIL,'종합','메모']);
+  statMembers().forEach(m=>logsOf(m.id).forEach(r=>{
+    rows.push([m.name,r.ym,...ABIL.map(k=>r[k]||0),abilTotal(r),r.memo||'']);
+  }));
+  rows.push([]);
+  rows.push(['── 부상 이력 ──']);
+  rows.push(['이름','부위','정도','발생일','복귀일','메모']);
+  statMembers().forEach(m=>injOf(m.id).forEach(x=>{
+    rows.push([m.name,x.part||'',x.sev||'',x.start||'',x.end||'미정',x.memo||'']);
+  }));
+  downloadCSV(`WAVE_회원스탯_${ymStamp()}.csv`,rows);
 }
 function toggleDues(mid,ym){openDuesPicker(mid,ym)}
 
@@ -838,14 +1167,21 @@ function duesLabel(mid,ym){
   return{txt:t,cls:st.cls,sub:(st.amt&&d.amt?Number(String(d.amt).replace(/[^\d]/g,'')||0).toLocaleString()+'원':'')||(st.memo&&d.memo?d.memo:'')};
 }
 let duesTargetKey=null,hideDuesMemo=false;
+// 조회 중인 달 말일까지 가입한 회원인지 (가입 전 달에는 회비 대상이 아님)
+function monthEndNum(){const last=new Date(viewYear,viewMonth+1,0).getDate();return viewYear*10000+(viewMonth+1)*100+last}
+function joinedByMonth(m){const j=dnum(m&&m.joinDate);return!j||j<=monthEndNum()}
+function duesMemberList(){
+  return [...(S.members||[]).map(m=>({...m,_grp:'활동'})),
+          ...(S.resting||[]).map(m=>({...m,_grp:'휴식'})),
+          ...(S.trial||[]).map(m=>({...m,_grp:'체험'}))]
+         .filter(joinedByMonth).sort(korSort);
+}
 function ymLabel(){return viewYear+'년 '+(viewMonth+1)+'월'}
 function ymKey(){return viewYear+'-'+String(viewMonth+1).padStart(2,'0')}
 
 function renderDues(){
   const ym=ymKey();
-  const list=[...(S.members||[]).map(m=>({...m,_grp:'활동'})),
-              ...(S.resting||[]).map(m=>({...m,_grp:'휴식'})),
-              ...(S.trial||[]).map(m=>({...m,_grp:'체험'}))].sort(korSort);
+  const list=duesMemberList();
   const cnt={paid:0,trial_paid:0,unpaid:0,carry:0,rest:0,none:0};
   list.forEach(m=>{const d=duesGet(m.id,ym);if(d&&cnt[d.st]!==undefined)cnt[d.st]++;else cnt.none++});
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
