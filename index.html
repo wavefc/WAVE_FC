@@ -227,6 +227,13 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .pos-l{font-size:11px;font-weight:700;color:var(--text2);margin-top:4px}
 .pos-tag{position:absolute;top:-7px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;background:var(--green);color:#fff;padding:1px 7px;border-radius:8px;white-space:nowrap}
 .pos-tag.set{background:var(--accent)}
+.imp-box{border:1px solid var(--border);border-radius:10px;padding:11px;background:var(--bg);margin-top:6px}
+.imp-h{font-size:12px;font-weight:800;color:var(--text);margin-bottom:6px}
+.imp-li{font-size:12px;color:var(--text2);line-height:1.6}
+.imp-li.warn{color:#d97706}
+.imp-warn{font-size:12px;color:#d97706;background:rgba(217,119,6,.1);border-radius:8px;padding:9px;margin-top:6px}
+.imp-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.imp-chip{font-size:11px;background:var(--bg3);color:var(--text2);padding:3px 8px;border-radius:10px}
 .fit-box{margin-top:10px;background:var(--bg2);border-left:3px solid #0f766e;border-radius:8px;padding:9px 12px}
 .fit-li{font-size:12px;color:var(--text2);line-height:1.55;padding-left:11px;position:relative;margin-bottom:3px}
 .fit-li:last-child{margin-bottom:0}
@@ -1251,7 +1258,7 @@ function renderStats(){
         <option value="ovr"${statSort==='ovr'?' selected':''}>종합순</option>
         <option value="pos"${statSort==='pos'?' selected':''}>포지션순</option>
         <option value="name"${statSort==='name'?' selected':''}>가나다순</option>
-      </select>${xbtn('exportStats()')}</div></div>
+      </select><button class="btn btn-sm btn-secondary" onclick="openImport()">📥 엑셀 가져오기</button>${xbtn('exportStats()')}</div></div>
   <div style="font-size:12px;color:var(--text3);margin-bottom:14px">이름을 누르면 포지션별 종합점수와 세부 능력치, 변화 추이를 볼 수 있어요.</div>
   <div class="stats-grid" style="margin-bottom:16px">
     <div class="stat-card"><div class="stat-label">📈 기록됨</div><div class="stat-value">${rec.length}/${list.length}명</div></div>
@@ -1556,6 +1563,115 @@ function delInjury(id,idx){
   list.splice(idx,1);S.injuries[id]=list;saveData();render();
 }
 // 내보내기
+// ═══ 엑셀(CSV) 가져오기 ═══
+// 내보내기와 같은 형식. 쉼표 CSV, 엑셀에서 복사한 탭 구분 모두 지원.
+const FOOT_IN={'오른발':'R','왼발':'L','양발':'B','R':'R','L':'L','B':'B'};
+let importRows=null;
+function splitLine(line,d){
+  if(d==='\t')return line.split('\t');
+  const out=[];let cur='',q=false;
+  for(let i=0;i<line.length;i++){const c=line[i];
+    if(q){ if(c==='"'){ if(line[i+1]==='"'){cur+='"';i++} else q=false } else cur+=c }
+    else { if(c==='"')q=true; else if(c===d){out.push(cur);cur=''} else cur+=c }
+  }
+  out.push(cur);return out;
+}
+function parseTable(text){
+  const lines=String(text).replace(/^\uFEFF/,'').split(/\r?\n/);
+  const hi=lines.findIndex(l=>l.indexOf('이름')>=0);
+  if(hi<0)return null;
+  const d=lines[hi].indexOf('\t')>=0?'\t':',';
+  const head=splitLine(lines[hi],d).map(x=>x.trim().replace(/^"|"$/g,''));
+  const rows=[];
+  for(let i=hi+1;i<lines.length;i++){
+    const raw=lines[i];
+    if(!raw.trim())continue;
+    if(raw.indexOf('──')>=0)break;           // 하단 이력 섹션에서 중단
+    const c=splitLine(raw,d).map(x=>x.trim());
+    if(!c[0])continue;
+    rows.push(c);
+  }
+  return{head:head,rows:rows};
+}
+function openImport(){
+  document.getElementById('statModalTitle').textContent='엑셀에서 스탯 가져오기';
+  document.getElementById('statForm').innerHTML=`
+    <div style="font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:12px">
+      내보내기와 같은 형식이면 그대로 읽습니다. 엑셀에서 표를 복사해 붙여넣어도 돼요.<br>
+      <b>빈 칸은 기존 값을 그대로 두고</b>, 숫자가 있는 칸만 반영합니다.
+    </div>
+    <div class="field"><label>기록 시점</label><input id="impYm" value="${ymStamp()}" placeholder="2026-08"></div>
+    <div class="field"><label>파일 선택 (.csv)</label><input type="file" accept=".csv,.txt" id="impFile" onchange="readImportFile(this)"></div>
+    <div class="field"><label>또는 붙여넣기</label><textarea id="impText" class="obs-ta" style="min-height:110px;font-size:11px" placeholder="이름	등번호	구분 ..."></textarea></div>
+    <div id="impPreview"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn btn-secondary" onclick="closeModal('statModal')">취소</button>
+      <button class="btn btn-primary" onclick="previewImport()">미리보기</button>
+    </div>`;
+  importRows=null;
+  openModal('statModal');
+}
+function readImportFile(el){
+  const f=el.files&&el.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{document.getElementById('impText').value=r.result;previewImport()};
+  r.readAsText(f,'utf-8');
+}
+function previewImport(){
+  const t=document.getElementById('impText').value;
+  const p=parseTable(t);
+  const box=document.getElementById('impPreview');
+  if(!p||!p.rows.length){box.innerHTML='<div class="imp-warn">표를 읽지 못했어요. 첫 줄에 «이름»이 포함된 머리글이 있어야 합니다.</div>';importRows=null;return}
+  const idx={};p.head.forEach((h,i)=>{if(h)idx[h]=i});
+  const statCols=ABIL.filter(k=>idx[k]!==undefined);
+  const all=statMembers();
+  const ok=[],miss=[];
+  p.rows.forEach(c=>{
+    const nm=(c[idx['이름']]||'').trim();if(!nm)return;
+    const m=all.find(x=>x.name===nm);
+    if(!m){miss.push(nm);return}
+    const vals={};let cnt=0;
+    statCols.forEach(k=>{
+      const v=(c[idx[k]]||'').trim();
+      if(v===''||isNaN(parseInt(v,10)))return;
+      vals[k]=Math.max(0,Math.min(99,parseInt(v,10)));cnt++;
+    });
+    const extra={};
+    if(idx['주발']!==undefined&&FOOT_IN[(c[idx['주발']]||'').trim()])extra.foot=FOOT_IN[c[idx['주발']].trim()];
+    if(idx['배치']!==undefined){const v=(c[idx['배치']]||'').trim();if(v==='자동')extra.pos='';else if(SLOTS.some(s=>s.v===v))extra.pos=v}
+    if(idx['컨디션']!==undefined){const v=(c[idx['컨디션']]||'').trim();const cd=CONDS.find(x=>x.label===v);if(cd)extra.cond=cd.v}
+    if(idx['관찰 메모']!==undefined){const v=(c[idx['관찰 메모']]||'').trim();if(v)extra.note=v}
+    if(cnt||Object.keys(extra).length)ok.push({m:m,vals:vals,cnt:cnt,extra:extra});
+  });
+  importRows=ok;
+  let h=`<div class="imp-box"><div class="imp-h">읽은 결과</div>
+    <div class="imp-li">✅ 반영 대상 <b>${ok.length}명</b> · 스탯 항목 <b>${statCols.length}개</b></div>`;
+  if(miss.length)h+=`<div class="imp-li warn">⚠️ 명단에 없는 이름 ${miss.length}명 — ${esc(miss.slice(0,8).join(', '))}${miss.length>8?' 외':''}</div>`;
+  if(!statCols.length)h+='<div class="imp-li warn">⚠️ 스탯 열을 못 찾았어요. 머리글 이름이 내보내기와 같아야 합니다.</div>';
+  h+='<div class="imp-list">'+ok.slice(0,12).map(o=>`<span class="imp-chip">${esc(o.m.name)} <b>${o.cnt}</b></span>`).join('')+(ok.length>12?`<span class="imp-chip">외 ${ok.length-12}명</span>`:'')+'</div>';
+  h+=`</div><div style="text-align:right;margin-top:10px"><button class="btn btn-primary" onclick="applyImport()">이대로 반영</button></div>`;
+  box.innerHTML=h;
+}
+function applyImport(){
+  if(!importRows||!importRows.length)return alert('반영할 내용이 없어요.');
+  const ym=document.getElementById('impYm').value.trim()||ymStamp();
+  if(!confirm(`${ym} 시점으로 ${importRows.length}명의 스탯을 반영할까요?\n같은 시점 기록이 있으면 값을 덮어씁니다.`))return;
+  if(!S.statLog)S.statLog={};if(!S.pstats)S.pstats={};
+  importRows.forEach(o=>{
+    const id=o.m.id;
+    const arr=[...((S.statLog||{})[id]||[])];
+    const i=arr.findIndex(r=>r.ym===ym);
+    const base=i>=0?{...arr[i]}:{ym:ym,memo:''};
+    Object.keys(o.vals).forEach(k=>base[k]=o.vals[k]);
+    base.ym=ym;
+    if(i>=0)arr[i]=base;else arr.push(base);
+    S.statLog[id]=arr;
+    if(Object.keys(o.extra).length)S.pstats[id]={...pstat(id),...o.extra};
+  });
+  const n=importRows.length;
+  saveData();closeModal('statModal');importRows=null;render();
+  alert(`${n}명 반영 완료했어요.`);
+}
 function exportStats(){
   const rows=[['이름','등번호','구분','주발','배치','컨디션',...SLOTS.map(s=>s.v+' OVR'),...ABIL,'기록 횟수','부상 중','최근 부상','관찰 메모']];
   statMembers().forEach(m=>{
