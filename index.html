@@ -198,7 +198,7 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 /* ── 회원 스탯 ── */
 .stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
 .stat-box .box-h{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px}
-.fut-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px}
+.fut-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(206px,1fr));gap:12px}
 .fut-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:.18s}
 .fut-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.12);border-color:var(--accent)}
 .fut-card.is-empty{opacity:.62}
@@ -227,6 +227,10 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .pos-l{font-size:11px;font-weight:700;color:var(--text2);margin-top:4px}
 .pos-tag{position:absolute;top:-7px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;background:var(--green);color:#fff;padding:1px 7px;border-radius:8px;white-space:nowrap}
 .pos-tag.set{background:var(--accent)}
+.fit-box{margin-top:10px;background:var(--bg2);border-left:3px solid #0f766e;border-radius:8px;padding:9px 12px}
+.fit-li{font-size:12px;color:var(--text2);line-height:1.55;padding-left:11px;position:relative;margin-bottom:3px}
+.fit-li:last-child{margin-bottom:0}
+.fit-li:before{content:'▸';position:absolute;left:0;color:#0f766e;font-weight:900}
 .grp-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:14px}
 .grp-h{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;border-left:3px solid;padding-left:7px;margin-bottom:7px}
 .abil-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
@@ -910,15 +914,25 @@ const STAT_GROUPS=[
   {key:'DRI',label:'드리블',color:'#d97706',keys:['볼컨트롤','드리블','민첩성','밸런스']},
   {key:'DEF',label:'수비',color:'#2563eb',keys:['태클','가로채기','대인수비','수비집중력']},
   {key:'PHY',label:'피지컬',color:'#7c3aed',keys:['스피드','가속력','몸싸움','체력','점프']},
-  {key:'GK', label:'골레이로',color:'#0891b2',keys:['GK반응','GK선방','GK위치선정','GK1대1','GK발기술']}
+  {key:'GK', label:'골레이로',color:'#0891b2',keys:['GK반응','GK선방','GK위치선정','GK1대1','GK발기술']},
+  {key:'COM',label:'의사소통',color:'#db2777',keys:['콜 타이밍','지시 정확도','상황 인지','대형 조율','사기 진작']},
+  {key:'TEC',label:'기술·특기',color:'#0f766e',keys:['아웃사이드','인사이드','발등 슈팅','인사이드 슈팅','세트피스 킥','등지는 플레이']}
 ];
 const ABIL=STAT_GROUPS.reduce((a,g)=>a.concat(g.keys),[]);
 // 포지션별 가중치 (합계 100) — 같은 선수라도 자리에 따라 종합이 달라집니다.
 const POS_DEF={
-  '피보':   {label:'피보',   desc:'최전방 마무리',  w:{결정력:18,슛파워:12,위치선정:10,볼컨트롤:10,몸싸움:10,드리블:8,짧은패스:7,발리:7,민첩성:6,스피드:6,가속력:6}},
-  '아라':   {label:'아라',   desc:'측면 공수 가담', w:{스피드:14,가속력:12,드리블:12,볼컨트롤:10,크로스:10,체력:10,결정력:8,짧은패스:8,민첩성:8,슛파워:8}},
-  '픽소':   {label:'픽소',   desc:'후방 조율·수비', w:{수비집중력:14,가로채기:12,태클:12,대인수비:12,짧은패스:12,시야:10,긴패스:8,밸런스:7,체력:7,몸싸움:6}},
-  '골레이로':{label:'골레이로',desc:'골문 수호',    w:{GK선방:25,GK반응:22,GK위치선정:18,GK1대1:15,GK발기술:12,밸런스:4,민첩성:4}}
+  '피보':   {label:'피보',   desc:'최전방 마무리·포스트',
+    w:{결정력:15,'등지는 플레이':10,슛파워:9,위치선정:9,볼컨트롤:8,몸싸움:8,'발등 슈팅':6,'인사이드 슈팅':6,
+       드리블:6,짧은패스:5,발리:4,민첩성:4,스피드:3,가속력:3,'사기 진작':2,'콜 타이밍':1,'상황 인지':1}},
+  '아라':   {label:'아라',   desc:'측면 돌파·마무리',
+    w:{스피드:11,드리블:10,가속력:9,아웃사이드:7,인사이드:7,볼컨트롤:7,크로스:7,체력:7,'인사이드 슈팅':6,
+       결정력:6,짧은패스:5,민첩성:5,'발등 슈팅':4,'세트피스 킥':3,슛파워:2,'상황 인지':2,'콜 타이밍':1,'대형 조율':1}},
+  '픽소':   {label:'픽소',   desc:'후방 조율·사령탑',
+    w:{수비집중력:11,가로채기:9,태클:9,대인수비:9,짧은패스:9,시야:7,'지시 정확도':7,'대형 조율':6,긴패스:5,
+       '상황 인지':4,밸런스:4,체력:4,볼컨트롤:4,몸싸움:3,인사이드:3,'세트피스 킥':2,'콜 타이밍':2,'사기 진작':1,아웃사이드:1}},
+  '골레이로':{label:'골레이로',desc:'골문 수호·후방 지휘',
+    w:{'GK선방':20,'GK반응':18,'GK위치선정':14,'GK1대1':12,'GK발기술':9,'콜 타이밍':6,'지시 정확도':4,민첩성:4,
+       '상황 인지':3,밸런스:3,인사이드:3,짧은패스:2,'대형 조율':1,'사기 진작':1}}
 };
 // 실제 배치 슬롯 (아라는 좌·우로 나뉨)
 const SLOTS=[
@@ -953,16 +967,33 @@ function curAbil(id){
 function hasAbil(id){return logsOf(id).length>0}
 function groupAvg(a,g){const v=g.keys.map(k=>a[k]||0);return Math.round(v.reduce((s,x)=>s+x,0)/v.length)}
 // 기준 포지션 + 좌우 사이드로 OVR 계산 (포메이션·포지션 비교 공용)
+// 아라 좌·우 적합도 — 주발만이 아니라 아웃사이드/인사이드 기술로 판단합니다.
+// 같은 발 쪽(오른발-우측)은 인사이드로 안정적 전개, 반대 쪽(오른발-좌측)은
+// 아웃사이드로 벌리거나 인사이드 슈팅으로 접어 들어가는 유형이 잘 맞습니다.
+function sideFit(a,side,foot){
+  const OUT=a['아웃사이드']||0, IN=a['인사이드']||0, INS=a['인사이드 슈팅']||0, CR=a['크로스']||0;
+  let v;
+  if(foot==='B') v=1.5+(Math.max(OUT,IN)-50)*0.06;
+  else if(foot===side) v=(IN-50)*0.08+(CR-50)*0.03;        // 순발 측면 — 인사이드로 벌려주는 유형
+  else v=1.5+(OUT-50)*0.10+(INS-50)*0.07;                  // 역발 측면 — 아웃사이드로 벌리거나 접어 들어가는 유형
+  return Math.max(-7,Math.min(9,v));
+}
+function sideReason(a,side,foot){
+  const OUT=a['아웃사이드']||0,IN=a['인사이드']||0,INS=a['인사이드 슈팅']||0;
+  const sn=side==='L'?'왼쪽':'오른쪽';
+  if(foot==='B')return `양발이라 ${sn} 어느 쪽이든 무난해요.`;
+  if(foot===side)return IN>=65?`주발 쪽이고 인사이드(${IN})가 좋아 ${sn}에서 벌려주는 전개가 안정적이에요.`
+    :`주발 쪽이지만 인사이드(${IN})가 낮아 ${sn}에서 단조로울 수 있어요.`;
+  if(OUT>=65)return `역발 쪽이지만 아웃사이드(${OUT})가 좋아 ${sn}에서 바깥으로 벌리는 플레이가 됩니다.`;
+  if(INS>=65)return `역발 쪽이라 ${sn}에서 안으로 접어 인사이드 슛(${INS})으로 마무리하는 유형이에요.`;
+  return `역발 쪽이라 각도는 나오지만, 아웃사이드(${OUT})나 인사이드 슛(${INS})을 키우면 훨씬 좋아져요.`;
+}
 function ovrFor(a,base,side,foot){
   const d=POS_DEF[base];if(!d)return 0;
   const w=d.w;let sum=0,tot=0;
   Object.keys(w).forEach(k=>{sum+=(a[k]||0)*w[k];tot+=w[k]});
   let v=tot?sum/tot:0;
-  if(side){ // 좌·우 자리는 주발에 따라 보정
-    if(foot==='B')v+=1;
-    else if(foot===side)v+=3;
-    else v-=2;
-  }
+  if(side)v+=sideFit(a,side,foot);
   return Math.max(0,Math.min(99,Math.round(v)));
 }
 function posOVR(a,slotV,foot){
@@ -1034,13 +1065,14 @@ function teamReport(){
   const gkSl=starters.find(x=>x.sl.base==='골레이로');
   const gkOvr=gkSl?slotOVR(gkSl.mid,gkSl.sl):0;
   const teamOvr=Math.round(starters.reduce((s,x)=>s+slotOVR(x.mid,x.sl),0)/starters.length);
-  const order=['SHO','PAS','DRI','DEF','PHY'].sort((a,b)=>avg[b]-avg[a]);
+  const order=['SHO','PAS','DRI','DEF','PHY','COM','TEC'].sort((a,b)=>avg[b]-avg[a]);
   const nm=k=>(STAT_GROUPS.find(g=>g.key===k)||{}).label;
   const pros=[],cons=[];
   // 강점·약점
   pros.push(`${nm(order[0])}(${avg[order[0]]})·${nm(order[1])}(${avg[order[1]]})이 팀의 축이에요.`);
-  if(avg[order[4]]<50)cons.push(`${nm(order[4])}이 ${avg[order[4]]}로 가장 약해요.`);
-  else cons.push(`상대적으로 ${nm(order[4])}(${avg[order[4]]})이 아쉬워요.`);
+  const last=order[order.length-1];
+  if(avg[last]<50)cons.push(`${nm(last)}이 ${avg[last]}로 가장 약해요.`);
+  else cons.push(`상대적으로 ${nm(last)}(${avg[last]})이 아쉬워요.`);
   // 공수 균형
   const gap=avg.SHO-avg.DEF;
   if(gap>=12)pros.push('앞선에서 밀어붙이는 힘이 강합니다.'),cons.push('수비 전환이 늦으면 역습에 취약해요.');
@@ -1062,6 +1094,20 @@ function teamReport(){
   const feet=field.map(x=>pstat(x.mid).foot||'R');
   if(feet.every(f=>f==='R'))cons.push('전원 오른발이라 왼쪽 측면 전개가 단조로워질 수 있어요.');
   else if(feet.filter(f=>f==='L'||f==='B').length>=2)pros.push('왼발 자원이 있어 양쪽 전개가 가능해요.');
+  // 의사소통 — 픽소가 사령탑 역할
+  const fxSl=starters.find(x=>x.sl.base==='픽소');
+  if(fxSl){
+    const fxA=curAbil(fxSl.mid),fxCom=groupAvgKey(fxA,'COM');
+    const fxNm=(statMembers().find(m=>m.id===fxSl.mid)||{}).name||'';
+    if(fxCom>=70)pros.push(`픽소 ${fxNm}의 지휘력(${fxCom})이 좋아 뒤에서 대형이 잡힙니다.`);
+    else if(fxCom<50)cons.push(`픽소 ${fxNm}의 의사소통(${fxCom})이 낮아 수비 대형이 흔들릴 수 있어요.`);
+  }
+  if(gkSl){
+    const gkCom=groupAvgKey(curAbil(gkSl.mid),'COM');
+    if(gkCom<45)cons.push(`골레이로의 콜(${gkCom})이 약해 세트피스 상황에서 마크가 새기 쉬워요.`);
+  }
+  if(avg.COM>=68)pros.push('서로 부르고 맞춰주는 팀이라 수적 열세에서도 잘 버팁니다.');
+  else if(avg.COM<48)cons.push('전체적으로 콜이 적어 순간 대형 변화에 대응이 늦을 수 있어요.');
   // 부상
   const inj=starters.filter(x=>activeInj(x.mid).length);
   if(inj.length)cons.push(`부상 중인 선수 ${inj.length}명이 선발에 포함돼 있어요.`);
@@ -1152,7 +1198,7 @@ function renderFormation(){
   const rp=teamReport();
   if(rp){
     h+=`<div class="report"><div class="rep-h">📋 팀 총평 <span class="rep-ovr" style="color:${ovrColor(rp.teamOvr)}">${rp.teamOvr}</span></div>
-      <div class="rep-bars">${['SHO','PAS','DRI','DEF','PHY'].map(k=>{
+      <div class="rep-bars">${['SHO','PAS','DRI','DEF','PHY','COM','TEC'].map(k=>{
         const g=STAT_GROUPS.find(x=>x.key===k),v=rp.avg[k];
         return `<div class="rb"><div class="rb-k" style="color:${g.color}">${g.label}</div>
           <div class="rb-bar"><div class="rb-fill" style="width:${v}%;background:${g.color}"></div></div>
@@ -1227,8 +1273,8 @@ function renderStats(){
           ${m._grp!=='활동'?`<span class="${m._grp==='휴식'?'rest-badge':'trial-badge'}">${m._grp}</span>`:''}
           ${ai.length?`<span class="inj-badge">🩹</span>`:''}</div>
         <div class="fut-sub">#${esc(m.number)||'-'} · ${(FOOTS.find(f=>f.v===(ps.foot||'R'))||{}).label}${cd?` · <span style="color:${cd.c};font-weight:700">${cd.label}</span>`:''}</div>
-        <div class="fut-bars">${STAT_GROUPS.slice(0,5).map(g=>{
-          const v=has?groupAvg(a,g):0;
+        <div class="fut-bars">${['SHO','PAS','DRI','DEF','PHY','COM','TEC'].map(key=>{
+          const g=STAT_GROUPS.find(x=>x.key===key),v=has?groupAvg(a,g):0;
           return `<div class="fb"><span class="fb-k">${g.key}</span><span class="fb-v" style="color:${g.color}">${has?v:'–'}</span></div>`}).join('')}</div>
       </div></div>`;
   });
@@ -1268,7 +1314,23 @@ function renderStatDetail(id){
       ${i===0?'<div class="pos-tag">최적</div>':''}${isSet&&i!==0?'<div class="pos-tag set">배치</div>':''}
     </div>`;
   });
-  h+=`</div><div style="font-size:11px;color:var(--text3);margin-top:8px">칸을 누르면 그 자리로 배치돼요. ${has?'':'먼저 능력치를 입력해주세요.'}</div></div>`;
+  h+=`</div>`;
+  if(has){
+    const foot=ps.foot||'R',best=ovrs[0];
+    const tips=[];
+    const dl=ovrs.find(o=>o.slot==='아라(L)'),dr=ovrs.find(o=>o.slot==='아라(R)');
+    if(dl&&dr){
+      const better=dl.ovr>=dr.ovr?'L':'R';
+      tips.push(`아라는 ${better==='L'?'왼쪽':'오른쪽'}이 ${Math.abs(dl.ovr-dr.ovr)}점 높아요 — ${sideReason(a,better,foot)}`);
+    }
+    const back=a['등지는 플레이']||0;
+    if(back>=70)tips.push(`등지는 플레이(${back})가 좋아 피보로 볼을 지켜주는 역할이 가능해요.`);
+    else if(back<45&&best.slot==='피보')tips.push(`피보로 뛰지만 등지는 플레이(${back})가 약해 볼 간수가 아쉬울 수 있어요.`);
+    const sp=a['세트피스 킥']||0;
+    if(sp>=70)tips.push(`세트피스 킥(${sp})이 좋아 코너킥·킥인 전담이 어울려요.`);
+    if(tips.length)h+=`<div class="fit-box">${tips.map(t=>`<div class="fit-li">${esc(t)}</div>`).join('')}</div>`;
+  }
+  h+=`<div style="font-size:11px;color:var(--text3);margin-top:8px">칸을 누르면 그 자리로 배치돼요. ${has?'':'먼저 능력치를 입력해주세요.'}</div></div>`;
   // 세부 능력치
   h+=`<div class="stat-box"><div class="box-h">세부 능력치</div>${radarSVG(a)}<div class="grp-wrap">`;
   STAT_GROUPS.forEach(g=>{
