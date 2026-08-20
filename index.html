@@ -198,7 +198,7 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 /* ── 회원 스탯 ── */
 .stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
 .stat-box .box-h{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px}
-.fut-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(206px,1fr));gap:12px}
+.fut-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px}
 .fut-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:.18s}
 .fut-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.12);border-color:var(--accent)}
 .fut-card.is-empty{opacity:.62}
@@ -212,8 +212,8 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .fut-sub{font-size:10px;color:var(--text3);margin-bottom:9px}
 .fut-bars{display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:8px}
 .fb{display:flex;flex-direction:column;align-items:center;gap:2px}
-.fb-k{font-size:8px;font-weight:800;color:var(--text3);letter-spacing:.3px}
-.fb-v{font-size:13px;font-weight:900}
+.fb-k{font-size:7.5px;font-weight:800;color:var(--text3);letter-spacing:0}
+.fb-v{font-size:12px;font-weight:900}
 .det-head{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px}
 .det-ovr{width:96px;height:110px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
 .det-ovr-n{font-size:40px;font-weight:900;line-height:1;letter-spacing:-2px}
@@ -266,9 +266,9 @@ tbody tr:hover td{background:var(--bg-hover)}tbody tr:last-child td{border-botto
 .report{margin-top:16px;border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--bg)}
 .rep-h{font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .rep-ovr{font-size:22px;font-weight:900;line-height:1}
-.rep-bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 16px;margin-bottom:12px}
+.rep-bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:8px 16px;margin-bottom:12px}
 .rb{display:flex;align-items:center;gap:8px}
-.rb-k{width:46px;font-size:11px;font-weight:800;flex-shrink:0}
+.rb-k{width:58px;font-size:10.5px;font-weight:800;flex-shrink:0;line-height:1.2}
 .rb-bar{flex:1;height:7px;background:var(--bg3);border-radius:5px;overflow:hidden}
 .rb-fill{height:100%;border-radius:5px}
 .rb-v{width:20px;text-align:right;font-size:11px;font-weight:800}
@@ -373,7 +373,7 @@ const todayDot=()=>{const d=new Date();return d.getFullYear()+'.'+String(d.getMo
 let S={members:[],resting:[],retired:[],trial:[],notjoined:[],sessions:[],attendance:{},reasons:{},dues:{},pstats:{},statLog:{},injuries:{},lineup:{}};
 let viewYear=new Date().getFullYear(),viewMonth=new Date().getMonth(),currentTab='attendance';
 let editingMemberId=null,editingSessionId=null,reasonTarget=null;
-let selectedDates=[],venuePerDate={},calYear,calMonth;
+let selectedDates=[],venuePerDate={},customVenue={},calYear,calMonth;
 let restTargetId=null,retireTargetId=null,saving=false;
 let hideReasons=false;
 let attSort='name';
@@ -909,30 +909,35 @@ function exportDues(){
 // ═══ 회원 스탯 (풋살 능력치 · 포지션별 OVR) ═══
 // 세부 능력치 26개 · 0~99 척도. 미니홈피와 무관하게 여기서 직접 입력합니다.
 const STAT_GROUPS=[
-  {key:'SHO',label:'슈팅',color:'#e11d48',keys:['결정력','슛파워','발리','위치선정']},
-  {key:'PAS',label:'패스',color:'#16a34a',keys:['짧은패스','긴패스','시야','크로스']},
-  {key:'DRI',label:'드리블',color:'#d97706',keys:['볼컨트롤','드리블','민첩성','밸런스']},
-  {key:'DEF',label:'수비',color:'#2563eb',keys:['태클','가로채기','대인수비','수비집중력']},
+  {key:'SHO',label:'슈팅',color:'#e11d48',keys:['결정력','슛파워','위치선정','발리','아웃사이드 슈팅','인사이드 슈팅','코발 슈팅']},
+  {key:'PAS',label:'패스',color:'#16a34a',keys:['짧은패스','긴패스','시야','공중볼 패스','컷백패스','파라패스','패스 스피드','원터치 패스']},
+  {key:'DRI',label:'드리블',color:'#d97706',keys:['볼컨트롤','드리블','민첩성','밸런스','발바닥 컨트롤','볼 간수','페인팅']},
+  {key:'DEF',label:'수비',color:'#2563eb',keys:['수비 전환','가로채기','대인수비','수비집중력','백코트 적극성','클리어링','파울 관리']},
   {key:'PHY',label:'피지컬',color:'#7c3aed',keys:['스피드','가속력','몸싸움','체력','점프']},
   {key:'GK', label:'골레이로',color:'#0891b2',keys:['GK반응','GK선방','GK위치선정','GK1대1','GK발기술']},
-  {key:'COM',label:'의사소통',color:'#db2777',keys:['콜 타이밍','지시 정확도','상황 인지','대형 조율','사기 진작']},
-  {key:'TEC',label:'기술·특기',color:'#0f766e',keys:['아웃사이드','인사이드','발등 슈팅','인사이드 슈팅','세트피스 킥','등지는 플레이']}
+  {key:'COM',label:'의사소통',color:'#db2777',keys:['콜 타이밍','지시 정확도','상황 인지','대형 조율','사기 진작','로테이션 이해']},
+  {key:'TEC',label:'기술·특기',color:'#0f766e',keys:['아웃사이드 터치','인사이드 터치','세트피스 킥','등지는 플레이']}
 ];
+// 항목명이 바뀐 기존 기록 호환 (구 이름 → 새 이름)
+const STAT_ALIAS={'크로스':'공중볼 패스','태클':'수비 전환','아웃사이드':'아웃사이드 터치','인사이드':'인사이드 터치'};
 const ABIL=STAT_GROUPS.reduce((a,g)=>a.concat(g.keys),[]);
 // 포지션별 가중치 (합계 100) — 같은 선수라도 자리에 따라 종합이 달라집니다.
 const POS_DEF={
   '피보':   {label:'피보',   desc:'최전방 마무리·포스트',
-    w:{결정력:15,'등지는 플레이':10,슛파워:9,위치선정:9,볼컨트롤:8,몸싸움:8,'발등 슈팅':6,'인사이드 슈팅':6,
-       드리블:6,짧은패스:5,발리:4,민첩성:4,스피드:3,가속력:3,'사기 진작':2,'콜 타이밍':1,'상황 인지':1}},
+    w:{결정력:13,'등지는 플레이':10,'볼 간수':7,위치선정:8,슛파워:8,'인사이드 슈팅':6,'아웃사이드 슈팅':4,'코발 슈팅':4,
+       몸싸움:6,볼컨트롤:6,'발바닥 컨트롤':4,페인팅:4,드리블:3,짧은패스:4,'원터치 패스':3,발리:3,민첩성:3,
+       '사기 진작':2,'콜 타이밍':1,'상황 인지':1}},
   '아라':   {label:'아라',   desc:'측면 돌파·마무리',
-    w:{스피드:11,드리블:10,가속력:9,아웃사이드:7,인사이드:7,볼컨트롤:7,크로스:7,체력:7,'인사이드 슈팅':6,
-       결정력:6,짧은패스:5,민첩성:5,'발등 슈팅':4,'세트피스 킥':3,슛파워:2,'상황 인지':2,'콜 타이밍':1,'대형 조율':1}},
+    w:{스피드:10,가속력:8,드리블:9,페인팅:5,'아웃사이드 터치':6,'인사이드 터치':6,볼컨트롤:5,'발바닥 컨트롤':3,
+       '인사이드 슈팅':5,'아웃사이드 슈팅':3,'코발 슈팅':2,결정력:5,컷백패스:5,파라패스:4,'공중볼 패스':2,
+       짧은패스:3,'원터치 패스':3,'패스 스피드':2,체력:5,민첩성:4,'세트피스 킥':2,'상황 인지':1,'로테이션 이해':2}},
   '픽소':   {label:'픽소',   desc:'후방 조율·사령탑',
-    w:{수비집중력:11,가로채기:9,태클:9,대인수비:9,짧은패스:9,시야:7,'지시 정확도':7,'대형 조율':6,긴패스:5,
-       '상황 인지':4,밸런스:4,체력:4,볼컨트롤:4,몸싸움:3,인사이드:3,'세트피스 킥':2,'콜 타이밍':2,'사기 진작':1,아웃사이드:1}},
+    w:{수비집중력:10,'수비 전환':9,가로채기:8,대인수비:8,'백코트 적극성':6,클리어링:4,'파울 관리':4,
+       짧은패스:7,'원터치 패스':4,파라패스:3,긴패스:3,'패스 스피드':3,시야:6,
+       '지시 정확도':6,'대형 조율':5,'로테이션 이해':4,'상황 인지':3,'콜 타이밍':2,'볼 간수':3,밸런스:2}},
   '골레이로':{label:'골레이로',desc:'골문 수호·후방 지휘',
-    w:{'GK선방':20,'GK반응':18,'GK위치선정':14,'GK1대1':12,'GK발기술':9,'콜 타이밍':6,'지시 정확도':4,민첩성:4,
-       '상황 인지':3,밸런스:3,인사이드:3,짧은패스:2,'대형 조율':1,'사기 진작':1}}
+    w:{'GK선방':20,'GK반응':18,'GK위치선정':14,'GK1대1':12,'GK발기술':9,'콜 타이밍':6,'지시 정확도':4,
+       '상황 인지':3,'대형 조율':1,'로테이션 이해':1,민첩성:4,밸런스:3,짧은패스:2,'원터치 패스':2,클리어링:1}}
 };
 // 실제 배치 슬롯 (아라는 좌·우로 나뉨)
 const SLOTS=[
@@ -954,7 +959,12 @@ function statMembers(){
           ...(S.trial||[]).map(m=>({...m,_grp:'체험'}))].sort(korSort);
 }
 function pstat(id){return (S.pstats||{})[id]||{}}
-function logsOf(id){return [...((S.statLog||{})[id]||[])].sort((a,b)=>String(a.ym).localeCompare(String(b.ym)))}
+function logsOf(id){
+  return [...((S.statLog||{})[id]||[])]
+    .map(r=>{const o={...r};Object.keys(STAT_ALIAS).forEach(k=>{
+      if(o[k]!==undefined&&o[STAT_ALIAS[k]]===undefined)o[STAT_ALIAS[k]]=o[k]});return o})
+    .sort((a,b)=>String(a.ym).localeCompare(String(b.ym)));
+}
 function injOf(id){return [...((S.injuries||{})[id]||[])].sort((a,b)=>dnum(b.start)-dnum(a.start))}
 function activeInj(id){return injOf(id).filter(x=>!x.end)}
 function condOf(id){const c=pstat(id).cond;return CONDS.find(x=>x.v===c)||null}
@@ -971,7 +981,7 @@ function groupAvg(a,g){const v=g.keys.map(k=>a[k]||0);return Math.round(v.reduce
 // 같은 발 쪽(오른발-우측)은 인사이드로 안정적 전개, 반대 쪽(오른발-좌측)은
 // 아웃사이드로 벌리거나 인사이드 슈팅으로 접어 들어가는 유형이 잘 맞습니다.
 function sideFit(a,side,foot){
-  const OUT=a['아웃사이드']||0, IN=a['인사이드']||0, INS=a['인사이드 슈팅']||0, CR=a['크로스']||0;
+  const OUT=a['아웃사이드 터치']||0, IN=a['인사이드 터치']||0, INS=a['인사이드 슈팅']||0, CR=a['공중볼 패스']||0;
   let v;
   if(foot==='B') v=1.5+(Math.max(OUT,IN)-50)*0.06;
   else if(foot===side) v=(IN-50)*0.08+(CR-50)*0.03;        // 순발 측면 — 인사이드로 벌려주는 유형
@@ -979,15 +989,16 @@ function sideFit(a,side,foot){
   return Math.max(-7,Math.min(9,v));
 }
 function sideReason(a,side,foot){
-  const OUT=a['아웃사이드']||0,IN=a['인사이드']||0,INS=a['인사이드 슈팅']||0;
+  const OUT=a['아웃사이드 터치']||0,IN=a['인사이드 터치']||0,INS=a['인사이드 슈팅']||0;
   const sn=side==='L'?'왼쪽':'오른쪽';
   if(foot==='B')return `양발이라 ${sn} 어느 쪽이든 무난해요.`;
-  if(foot===side)return IN>=65?`주발 쪽이고 인사이드(${IN})가 좋아 ${sn}에서 벌려주는 전개가 안정적이에요.`
-    :`주발 쪽이지만 인사이드(${IN})가 낮아 ${sn}에서 단조로울 수 있어요.`;
-  if(OUT>=65)return `역발 쪽이지만 아웃사이드(${OUT})가 좋아 ${sn}에서 바깥으로 벌리는 플레이가 됩니다.`;
+  if(foot===side)return IN>=65?`주발 쪽이고 인사이드 터치(${IN})가 좋아 ${sn}에서 벌려주는 전개가 안정적이에요.`
+    :`주발 쪽이지만 인사이드 터치(${IN})가 낮아 ${sn}에서 단조로울 수 있어요.`;
+  if(OUT>=65)return `역발 쪽이지만 아웃사이드 터치(${OUT})가 좋아 ${sn}에서 바깥으로 벌리는 플레이가 됩니다.`;
   if(INS>=65)return `역발 쪽이라 ${sn}에서 안으로 접어 인사이드 슛(${INS})으로 마무리하는 유형이에요.`;
-  return `역발 쪽이라 각도는 나오지만, 아웃사이드(${OUT})나 인사이드 슛(${INS})을 키우면 훨씬 좋아져요.`;
+  return `역발 쪽이라 각도는 나오지만, 아웃사이드 터치(${OUT})나 인사이드 슛(${INS})을 키우면 훨씬 좋아져요.`;
 }
+
 function ovrFor(a,base,side,foot){
   const d=POS_DEF[base];if(!d)return 0;
   const w=d.w;let sum=0,tot=0;
@@ -1065,7 +1076,7 @@ function teamReport(){
   const gkSl=starters.find(x=>x.sl.base==='골레이로');
   const gkOvr=gkSl?slotOVR(gkSl.mid,gkSl.sl):0;
   const teamOvr=Math.round(starters.reduce((s,x)=>s+slotOVR(x.mid,x.sl),0)/starters.length);
-  const order=['SHO','PAS','DRI','DEF','PHY','COM','TEC'].sort((a,b)=>avg[b]-avg[a]);
+  const order=STAT_GROUPS.filter(g=>g.key!=='GK').map(g=>g.key).sort((a,b)=>avg[b]-avg[a]);
   const nm=k=>(STAT_GROUPS.find(g=>g.key===k)||{}).label;
   const pros=[],cons=[];
   // 강점·약점
@@ -1155,8 +1166,8 @@ function pitchSVG(){
     s+=`<g class="pitch-slot" onclick="scrollSlot('${sl.id}')">
       <circle cx="${cx}" cy="${cy}" r="21" fill="${m?'#0f2f5f':'rgba(0,0,0,.4)'}" stroke="${manual?'#fbbf24':'#fff'}" stroke-width="${manual?3:2}"/>
       <text x="${cx}" y="${cy+6}" text-anchor="middle" font-size="16" font-weight="900" fill="#fff">${ovr!==null?ovr:'?'}</text>
-      <rect x="${cx-36}" y="${cy+25}" width="72" height="16" rx="8" fill="rgba(0,0,0,.55)"/>
-      <text x="${cx}" y="${cy+36}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">${m?esc(m.name):'미배치'}</text>
+      <rect x="${cx-40}" y="${cy+25}" width="80" height="16" rx="8" fill="rgba(0,0,0,.6)"/>
+      <text x="${cx}" y="${cy+36}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#fff">${m?esc(m.name.length>6?m.name.slice(0,6)+'…':m.name):'미배치'}</text>
       <text x="${cx}" y="${cy-27}" text-anchor="middle" font-size="9.5" font-weight="800" fill="#eaffea" stroke="#1c5c1c" stroke-width="2.2" paint-order="stroke">${esc(sl.label)}</text></g>`;
   });
   return s+'</svg>';
@@ -1198,7 +1209,7 @@ function renderFormation(){
   const rp=teamReport();
   if(rp){
     h+=`<div class="report"><div class="rep-h">📋 팀 총평 <span class="rep-ovr" style="color:${ovrColor(rp.teamOvr)}">${rp.teamOvr}</span></div>
-      <div class="rep-bars">${['SHO','PAS','DRI','DEF','PHY','COM','TEC'].map(k=>{
+      <div class="rep-bars">${STAT_GROUPS.filter(g=>g.key!=='GK').map(g=>g.key).map(k=>{
         const g=STAT_GROUPS.find(x=>x.key===k),v=rp.avg[k];
         return `<div class="rb"><div class="rb-k" style="color:${g.color}">${g.label}</div>
           <div class="rb-bar"><div class="rb-fill" style="width:${v}%;background:${g.color}"></div></div>
@@ -1273,7 +1284,7 @@ function renderStats(){
           ${m._grp!=='활동'?`<span class="${m._grp==='휴식'?'rest-badge':'trial-badge'}">${m._grp}</span>`:''}
           ${ai.length?`<span class="inj-badge">🩹</span>`:''}</div>
         <div class="fut-sub">#${esc(m.number)||'-'} · ${(FOOTS.find(f=>f.v===(ps.foot||'R'))||{}).label}${cd?` · <span style="color:${cd.c};font-weight:700">${cd.label}</span>`:''}</div>
-        <div class="fut-bars">${['SHO','PAS','DRI','DEF','PHY','COM','TEC'].map(key=>{
+        <div class="fut-bars">${STAT_GROUPS.map(g=>g.key).map(key=>{
           const g=STAT_GROUPS.find(x=>x.key===key),v=has?groupAvg(a,g):0;
           return `<div class="fb"><span class="fb-k">${g.key}</span><span class="fb-v" style="color:${g.color}">${has?v:'–'}</span></div>`}).join('')}</div>
       </div></div>`;
@@ -1855,8 +1866,8 @@ function openDetail(id){
 }
 
 // ═══ SESSION ═══
-function openAddSessions(){editingSessionId=null;selectedDates=[];venuePerDate={};calYear=viewYear;calMonth=viewMonth;document.getElementById('sessionModalTitle').textContent='일정 추가 (여러 날짜 선택 가능)';renderSF();openModal('sessionModal')}
-function openEditSession(id){editingSessionId=id;const s=(S.sessions||[]).find(x=>x.id===id);if(!s)return;const d=new Date(s.date);calYear=d.getFullYear();calMonth=d.getMonth();selectedDates=[s.date];venuePerDate={};venuePerDate[s.date]=s.venue;document.getElementById('sessionModalTitle').textContent='일정 수정';renderSF();openModal('sessionModal')}
+function openAddSessions(){editingSessionId=null;selectedDates=[];venuePerDate={};customVenue={};calYear=viewYear;calMonth=viewMonth;document.getElementById('sessionModalTitle').textContent='일정 추가 (여러 날짜 선택 가능)';renderSF();openModal('sessionModal')}
+function openEditSession(id){editingSessionId=id;const s=(S.sessions||[]).find(x=>x.id===id);if(!s)return;const d=new Date(s.date);calYear=d.getFullYear();calMonth=d.getMonth();selectedDates=[s.date];venuePerDate={};customVenue={};venuePerDate[s.date]=s.venue;customVenue[s.date]=!!(s.venue&&!VENUES.slice(0,4).includes(s.venue));document.getElementById('sessionModalTitle').textContent='일정 수정';renderSF();openModal('sessionModal')}
 function renderSF(){
   const existing=new Set((S.sessions||[]).map(s=>s.date));if(editingSessionId){const es=(S.sessions||[]).find(x=>x.id===editingSessionId);if(es)existing.delete(es.date)}
   const first=new Date(calYear,calMonth,1),lastDay=new Date(calYear,calMonth+1,0).getDate(),startDow=first.getDay(),todayStr=new Date().toISOString().slice(0,10);
@@ -1864,18 +1875,44 @@ function renderSF(){
   for(let i=0;i<startDow;i++)h+='<div class="date-cell empty"></div>';
   for(let d=1;d<=lastDay;d++){const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const isTue=new Date(calYear,calMonth,d).getDay()===2,isToday=ds===todayStr,isExist=existing.has(ds),isSel=selectedDates.includes(ds);let cls='date-cell';if(isExist)cls+=' existing';else cls+=' selectable';if(isSel)cls+=' selected';if(isTue&&!isSel)cls+=' tuesday';if(isToday)cls+=' today';h+=`<div class="${cls}" ${!isExist?`onclick="toggleDate('${ds}')"`:''}>${d}</div>`}
   h+='</div>';
-  if(selectedDates.length){h+='<div class="venue-per-date">';[...selectedDates].sort().forEach(ds=>{const v=venuePerDate[ds]||'내서스포츠',isC=v&&!VENUES.slice(0,4).includes(v)&&v!=='직접입력',sel=isC?'직접입력':v;h+=`<div class="venue-row"><span class="date-label">${fmtDate(ds)}</span><select onchange="changeVenue('${ds}',this.value)">${VENUES.map(vn=>`<option value="${vn}" ${sel===vn?'selected':''}>${vn}</option>`).join('')}</select>${sel==='직접입력'||isC?`<input value="${isC?esc(v):''}" placeholder="장소명 입력" onchange="setCV('${ds}',this.value)">`:''}  </div>`});h+='</div>'}
+  if(selectedDates.length){h+='<div class="venue-per-date">';[...selectedDates].sort().forEach(ds=>{
+    const raw=Object.prototype.hasOwnProperty.call(venuePerDate,ds)?(venuePerDate[ds]||''):'내서스포츠';
+    const isPreset=VENUES.slice(0,4).includes(raw);
+    const isC=!!customVenue[ds]||(!!raw&&!isPreset);
+    const sel=isC?'직접입력':(raw||'내서스포츠');
+    h+=`<div class="venue-row"><span class="date-label">${fmtDate(ds)}</span>
+      <select onchange="changeVenue('${ds}',this.value)">${VENUES.map(vn=>`<option value="${vn}" ${sel===vn?'selected':''}>${vn}</option>`).join('')}</select>
+      ${isC?`<input value="${!isPreset?esc(raw):''}" placeholder="장소명 입력" oninput="setCV('${ds}',this.value)">`:''}</div>`;
+  });h+='</div>'}
   h+=`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap">`;
   if(editingSessionId)h+=`<button class="btn btn-danger" style="margin-right:auto" onclick="deleteSession()">삭제</button>`;
   h+=`<button class="btn btn-secondary" onclick="closeModal('sessionModal')">취소</button><button class="btn btn-primary" onclick="saveSessions()">${editingSessionId?'저장':'추가 ('+selectedDates.length+'개)'}</button></div>`;
   document.getElementById('sessionForm').innerHTML=h;
 }
-function toggleDate(ds){if(editingSessionId){selectedDates=[ds]}else{const i=selectedDates.indexOf(ds);if(i>=0){selectedDates.splice(i,1);delete venuePerDate[ds]}else{selectedDates.push(ds);venuePerDate[ds]='내서스포츠'}}renderSF()}
-function changeVenue(ds,v){venuePerDate[ds]=v==='직접입력'?'':v;renderSF()}
-function setCV(ds,v){venuePerDate[ds]=v.trim()||'미정'}
+function toggleDate(ds){if(editingSessionId){selectedDates=[ds]}else{const i=selectedDates.indexOf(ds);if(i>=0){selectedDates.splice(i,1);delete venuePerDate[ds];delete customVenue[ds]}else{selectedDates.push(ds);venuePerDate[ds]='내서스포츠';customVenue[ds]=false}}renderSF()}
+function changeVenue(ds,v){
+  if(v==='직접입력'){
+    customVenue[ds]=true;
+    const cur=venuePerDate[ds]||'';
+    // 기존 값이 미리 정해둔 장소였다면 비우고, 직접 입력한 값이면 유지
+    venuePerDate[ds]=VENUES.includes(cur)?'':cur;
+  }else{customVenue[ds]=false;venuePerDate[ds]=v}
+  renderSF();
+}
+function setCV(ds,v){venuePerDate[ds]=v}
 function calPrev(){if(calMonth===0){calMonth=11;calYear--}else calMonth--;renderSF()}
 function calNext(){if(calMonth===11){calMonth=0;calYear++}else calMonth++;renderSF()}
-function saveSessions(){if(!selectedDates.length)return alert('날짜를 선택해주세요.');if(!S.sessions)S.sessions=[];if(editingSessionId){const ds=selectedDates[0],venue=venuePerDate[ds]||'내서스포츠';S.sessions=S.sessions.map(s=>s.id===editingSessionId?{...s,date:ds,venue:venue||'내서스포츠'}:s)}else{selectedDates.forEach(ds=>{if(!S.sessions.some(s=>s.date===ds))S.sessions.push({id:genId(),date:ds,venue:venuePerDate[ds]||'내서스포츠'})})}saveData();closeModal('sessionModal');render()}
+function saveSessions(){
+  if(!selectedDates.length)return alert('날짜를 선택해주세요.');
+  // 직접입력을 골랐는데 장소명이 비어 있으면 저장 막기
+  const empty=selectedDates.filter(ds=>customVenue[ds]&&!String(venuePerDate[ds]||'').trim());
+  if(empty.length)return alert('직접입력을 선택한 날짜의 장소명을 입력해주세요.\n('+empty.map(fmtDate).join(', ')+')');
+  const vOf=ds=>String(venuePerDate[ds]||'').trim()||'내서스포츠';
+  if(!S.sessions)S.sessions=[];
+  if(editingSessionId){const ds=selectedDates[0];S.sessions=S.sessions.map(s=>s.id===editingSessionId?{...s,date:ds,venue:vOf(ds)}:s)}
+  else{selectedDates.forEach(ds=>{if(!S.sessions.some(s=>s.date===ds))S.sessions.push({id:genId(),date:ds,venue:vOf(ds)})})}
+  saveData();closeModal('sessionModal');render();
+}
 function deleteSession(){if(!confirm('이 일정을 삭제하시겠습니까?'))return;const sid=editingSessionId;S.sessions=(S.sessions||[]).filter(s=>s.id!==sid);if(S.attendance)Object.keys(S.attendance).forEach(k=>{if(k.endsWith('_'+sid))delete S.attendance[k]});if(S.reasons)Object.keys(S.reasons).forEach(k=>{if(k.endsWith('_'+sid))delete S.reasons[k]});saveData();closeModal('sessionModal');render()}
 
 // ═══ INIT ═══
